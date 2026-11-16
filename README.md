@@ -100,6 +100,8 @@ To avoid "the build hangs without an error" again, the scripts do the following:
 - **Offline packaging**: reuse the Electron already installed under `node_modules/electron/dist` (`--config.electronDist`) instead of letting electron-builder verify or download it over the network. When GitHub release assets are unreachable, it can hang in TCP `SYN_SENT` without printing anything, which was exactly the cause of the earlier "hang with no error".
 - **Visible progress**: each stage prints a title and elapsed time; electron-builder is protected by `BUILDER_TIMEOUT` (900s by default), which produces a clear message instead of waiting forever.
 - **Safe artifacts**: the DMG is first written as `*.partial.dmg` and only replaces the old file after `hdiutil verify` passes (the old `-ov` flag would destroy the previous DMG on failure); failures print the specific reason instead of being silently skipped.
+- **No silent freeze**: background helpers run with stdin closed (`</dev/null`), because a backgrounded tool that reads the terminal is stopped by SIGTTIN and looks exactly like a hang; on timeout the whole process tree (`npx → npm → electron-builder`) is killed, so no orphan keeps holding `release/`.
+- **ZIP-only escape hatch**: `SKIP_DMG=1 npm run dist:mac` produces only the `.app` and `.zip`, which is what you want in a sandbox or CI where `hdiutil` cannot create disk images (`hdiutil` reports that as a misleading "directory not empty").
 
 Troubleshooting: if you still suspect a hang, capture a stack sample with `sample $(pgrep -f "electron-builder|package-macos") 3 -file ~/Desktop/build-hang.txt`; if the network is genuinely restricted, retry through a mirror with `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm run dist:mac`.
 

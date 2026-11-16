@@ -100,6 +100,8 @@ npm run desktop:package
 - **离线打包**：直接复用 `node_modules/electron/dist` 里已装好的 Electron（`--config.electronDist`），不再让 electron-builder 联网校验或下载。GitHub release 资源连不通时，它会卡在 TCP `SYN_SENT` 且不打印任何错误，这正是之前"卡顿无报错"的原因。
 - **进度可见**：每个阶段打印标题与耗时；electron-builder 有 `BUILDER_TIMEOUT`（默认 900s）超时保护，超时会给出明确提示而不是无限等待。
 - **产物安全**：DMG 先写 `*.partial.dmg`，`hdiutil verify` 通过后才替换旧文件（旧的 `-ov` 会在失败时直接毁掉上一次的 DMG）；生成失败会打印具体原因，不再静默跳过。
+- **不会静默假死**：后台子命令统一 `</dev/null` 关闭 stdin——后台进程读终端会被 SIGTTIN 停住，表现和"卡死"一模一样；超时后会杀掉整棵进程树（`npx → npm → electron-builder`），避免残留进程继续占用 `release/`。
+- **只出 ZIP 的开关**：`SKIP_DMG=1 npm run dist:mac` 只生成 `.app` 和 `.zip`，适合沙箱 / CI 这类 `hdiutil` 无法创建磁盘映像的环境（此时 `hdiutil` 会给出误导性的"目录非空"）。
 
 排查建议：仍怀疑卡住时，用 `sample $(pgrep -f "electron-builder|package-macos") 3 -file ~/Desktop/build-hang.txt` 抓调用栈；网络确实受限时用镜像重试 `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm run dist:mac`。
 

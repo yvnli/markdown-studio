@@ -25,12 +25,16 @@ finish_step() {
 run_with_timeout() {
   local limit=$1
   shift
-  "$@" &
+  # stdin from /dev/null: a backgrounded child that reads the terminal is stopped by
+  # SIGTTIN, which looks exactly like a hung build (kill -0 keeps succeeding).
+  "$@" </dev/null &
   local pid=$!
   local waited=0
   while kill -0 "$pid" 2>/dev/null; do
     if (( waited >= limit )); then
-      kill "$pid" 2>/dev/null || true
+      # npx -> npm -> electron-builder -> helpers: kill the whole tree, otherwise the
+      # real builder keeps running and holds release/ while the next build starts
+      kill_tree "$pid"
       wait "$pid" 2>/dev/null || true
       return 124
     fi
@@ -38,6 +42,16 @@ run_with_timeout() {
     waited=$((waited + 1))
   done
   wait "$pid"
+}
+
+# Terminate a process and all of its descendants (macOS has no setsid/timeout built in)
+kill_tree() {
+  local pid=$1
+  local child
+  for child in $(pgrep -P "$pid" 2>/dev/null || true); do
+    kill_tree "$child"
+  done
+  kill "$pid" 2>/dev/null || true
 }
 
 # Each build writes about 400 MB of binaries into release/; Spotlight indexing would make
@@ -51,6 +65,10 @@ finish_step
 
 step "2/5 Generate .app (electron-builder --mac dir --arm64)"
 export CSC_IDENTITY_AUTO_DISCOVERY=false
+
+# A stage dir left behind by an interrupted build (electron-builder renames it to
+# "<productName>.app" as the last packing step) must not be reused as-is
+rm -rf "$ROOT/release/mac-arm64/Electron.app"
 
 BUILDER_ARGS=(--mac dir --arm64 --publish never)
 LOCAL_ELECTRON="$ROOT/node_modules/electron/dist"
@@ -66,6 +84,9 @@ else
   printf '  No local Electron found; downloading from the network. Set ELECTRON_MIRROR to use a mirror\n'
 fi
 
+# electron-builder only collects "dependencies"; this project bundles everything into dist/
+# with Vite, so it logs "no node modules returned while searching directories" and keeps
+# going. That message is informational, not a failure (see package.json's empty dependencies).
 status=0
 run_with_timeout "$BUILDER_TIMEOUT" npx electron-builder "${BUILDER_ARGS[@]}" || status=$?
 if (( status == 124 )); then
@@ -101,14 +122,24 @@ ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
 printf '  Created %s\n' "$ZIP"
 finish_step
 
+DMG_OK=0
 step "5/5 Generate DMG (about 10–60s; no output during this step is normal)"
-if bash "$ROOT/scripts/make-dmg.sh"; then
+if [[ "${SKIP_DMG:-0}" == "1" ]]; then
+  printf '  ⏭ Skipped because SKIP_DMG=1 (.app and .zip above are the deliverables)\n'
+elif bash "$ROOT/scripts/make-dmg.sh"; then
+  DMG_OK=1
   finish_step
 else
   printf '  ⚠ DMG was not generated (see the reason above); the .app and .zip are still valid.\n' >&2
 fi
 
 printf '\nAll done in %ds. Artifacts:\n' "$((SECONDS - TOTAL_START))"
-for f in "$APP" "$ZIP" "$ROOT/release/Markdown-studio-$VERSION-arm64.dmg"; do
+ARTIFACTS=("$APP" "$ZIP")
+DMG="$ROOT/release/Markdown-studio-$VERSION-arm64.dmg"
+# Only advertise a DMG this run actually produced (an old one may still be on disk)
+if (( DMG_OK )); then
+  ARTIFACTS+=("$DMG")
+fi
+for f in "${ARTIFACTS[@]}"; do
   [[ -e "$f" ]] && printf '  %-58s %s\n' "${f#"$ROOT"/}" "$(du -sh "$f" | cut -f1)"
 done
