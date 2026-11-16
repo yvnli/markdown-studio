@@ -17,11 +17,14 @@ It ships as a **macOS desktop app, a Windows x64 installer, and a web app**.
 | [Markdown-studio-2.0.0-arm64.dmg](release/Markdown-studio-2.0.0-arm64.dmg) | Recommended; drag it into Applications |
 | [Markdown-studio-2.0.0-arm64.zip](release/Markdown-studio-2.0.0-arm64.zip) | Unzip to get the `.app` |
 | [Markdown studio.app](<release/mac-arm64/Markdown studio.app>) | Signed application bundle |
-| [SHA256SUMS.txt](release/SHA256SUMS.txt) | Verify package integrity (run `shasum -a 256 -c SHA256SUMS.txt` inside `release/`) |
-| [macOS installation guide](release/Installation-Guide-macOS.txt) | Gatekeeper, installation steps, and checksum notes |
+| [SHA256SUMS.txt](docs/release/SHA256SUMS.txt) | Verify package integrity (run `shasum -a 256 -c SHA256SUMS.txt` next to the downloads) |
+| [macOS installation guide](docs/release/Installation-Guide-macOS.txt) | Gatekeeper, installation steps, and checksum notes |
 
 ![macOS desktop app](docs/desktop.png)
 
+> The installers themselves are git-ignored build artifacts in `release/`, not committed files; the
+> guides, checksums, and signing notes are versioned in [docs/release](docs/release/README.md).
+>
 > The package targets **Apple Silicon (arm64)** and uses ad-hoc signing without Apple Developer ID notarization. If Gatekeeper blocks the first launch, right-click the app in Finder and choose "Open". Public distribution will require a developer certificate signature and notarization.
 
 Desktop capabilities:
@@ -39,9 +42,9 @@ Desktop capabilities:
 | --- | --- |
 | [Markdown-studio-2.0.0-x64-setup.exe](release/Markdown-studio-2.0.0-x64-setup.exe) | Installer with a selectable install directory; creates desktop and Start menu shortcuts |
 | [Markdown-studio-2.0.0-x64-portable.exe](release/Markdown-studio-2.0.0-x64-portable.exe) | Portable build; double-click to run |
-| [Windows installation guide](release/Windows-Installation-Guide.txt) | SmartScreen, checksums, and usage notes |
+| [Windows installation guide](docs/release/Windows-Installation-Guide.txt) | SmartScreen, checksums, and usage notes |
 
-Targets **Windows 10 / 11 x64**. The current installers are not code-signed, so SmartScreen may warn about an "Unknown publisher"; click "More info" → "Run anyway". Installer SHA256 hashes are listed in [SHA256SUMS.txt](release/SHA256SUMS.txt).
+Targets **Windows 10 / 11 x64**. The current installers are not code-signed, so SmartScreen may warn about an "Unknown publisher"; click "More info" → "Run anyway". Installer SHA256 hashes are listed in [SHA256SUMS.txt](docs/release/SHA256SUMS.txt).
 
 > The current build was cross-compiled on macOS. The PE/NSIS structure, embedded `app.asar`, and installer integrity have been verified, but the app has not yet been launched on a real Windows machine. Before a public release, run a launch and install regression on Windows 11.
 
@@ -153,7 +156,8 @@ Current verification results: **96 tests passing**; the web production build, ma
 electron/                # Electron main process, preload, native file system
 build/                   # macOS app icon
 scripts/                 # Desktop dev and packaging scripts
-release/                 # DMG / ZIP / .app (build artifacts)
+release/                 # DMG / ZIP / .app (build artifacts, git-ignored)
+docs/release/            # Versioned release guides, SHA256SUMS, and release notes
 src/
 ├── app/                 # Zustand state: workspace, preferences, UI
 ├── components/

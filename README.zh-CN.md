@@ -17,11 +17,14 @@
 | [Markdown-studio-2.0.0-arm64.dmg](release/Markdown-studio-2.0.0-arm64.dmg) | 推荐，拖入「应用程序」即可 |
 | [Markdown-studio-2.0.0-arm64.zip](release/Markdown-studio-2.0.0-arm64.zip) | 解压后得到 `.app` |
 | [Markdown studio.app](<release/mac-arm64/Markdown studio.app>) | 已签名的应用包 |
-| [SHA256SUMS.txt](release/SHA256SUMS.txt) | 校验安装包完整性（在 `release/` 下执行 `shasum -a 256 -c SHA256SUMS.txt`） |
-| [English](release/Installation-Guide-macOS.txt) · [安装说明](<release/安装说明.txt>) | Gatekeeper、安装步骤与校验说明 |
+| [SHA256SUMS.txt](docs/release/SHA256SUMS.txt) | 校验安装包完整性（在下载目录执行 `shasum -a 256 -c SHA256SUMS.txt`） |
+| [English](docs/release/Installation-Guide-macOS.txt) · [安装说明](docs/release/安装说明.txt) | Gatekeeper、安装步骤与校验说明 |
 
 ![macOS 桌面版](docs/desktop.png)
 
+> 安装包本身是 `release/` 下被 Git 忽略的构建产物，不入库；安装说明、校验清单与签名说明随文档一起
+> 版本化在 [docs/release](docs/release/README.zh-CN.md)。
+>
 > 安装包面向 **Apple Silicon（arm64）**，使用 ad-hoc 签名，未使用 Apple Developer ID 公证。首次打开如被 Gatekeeper 拦截，请在 Finder 中右键应用 →「打开」。正式面向公众分发前需要开发者证书签名与 notarization。
 
 桌面版能力：
@@ -39,9 +42,9 @@
 | --- | --- |
 | [Markdown-studio-2.0.0-x64-setup.exe](release/Markdown-studio-2.0.0-x64-setup.exe) | 安装版，可选择安装目录，创建桌面/开始菜单快捷方式 |
 | [Markdown-studio-2.0.0-x64-portable.exe](release/Markdown-studio-2.0.0-x64-portable.exe) | 免安装便携版，双击运行 |
-| [English](release/Windows-Installation-Guide.txt) · [Windows 安装说明](<release/Windows-安装说明.txt>) | SmartScreen、校验和与使用说明 |
+| [English](docs/release/Windows-Installation-Guide.txt) · [Windows 安装说明](docs/release/Windows-安装说明.txt) | SmartScreen、校验和与使用说明 |
 
-面向 **Windows 10 / 11 x64**。当前安装包未使用 Windows 代码签名证书，SmartScreen 可能提示“未知发布者”；点击「更多信息」→「仍要运行」即可。安装包 SHA256 见 [SHA256SUMS.txt](release/SHA256SUMS.txt)。
+面向 **Windows 10 / 11 x64**。当前安装包未使用 Windows 代码签名证书，SmartScreen 可能提示“未知发布者”；点击「更多信息」→「仍要运行」即可。安装包 SHA256 见 [SHA256SUMS.txt](docs/release/SHA256SUMS.txt)。
 
 > 当前构建在 macOS 上交叉完成。已验证 PE/NSIS 结构、嵌入的 `app.asar` 与安装器完整性，但尚未在 Windows 实机启动验证；正式对外发布前建议在 Windows 11 上做一次启动与安装回归。
 
@@ -153,7 +156,8 @@ npm run desktop:package
 electron/                # Electron 主进程、preload、原生文件系统
 build/                   # macOS 应用图标
 scripts/                 # 桌面开发与打包脚本
-release/                 # DMG / ZIP / .app（构建产物）
+release/                 # DMG / ZIP / .app（构建产物，已忽略）
+docs/release/            # 版本化的发布说明、SHA256SUMS 与安装指南
 src/
 ├── app/                 # Zustand 状态：工作区、偏好、UI
 ├── components/

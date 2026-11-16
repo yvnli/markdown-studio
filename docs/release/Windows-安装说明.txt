@@ -1,0 +1,36 @@
+Markdown studio 2.0.0 · Windows x64
+===================================
+
+English version: Windows-Installation-Guide.txt
+
+安装
+----
+方式 A：安装版
+  Markdown-studio-2.0.0-x64-setup.exe
+  双击运行；可自选安装目录，安装后会创建桌面和开始菜单快捷方式。
+
+方式 B：便携版
+  Markdown-studio-2.0.0-x64-portable.exe
+  无需安装，双击直接运行。
+
+系统要求
+--------
+Windows 10 / Windows 11，x64。
+Windows 11 ARM64 可通过系统自带的 x64 模拟运行。
+
+首次启动
+--------
+1. 如出现 SmartScreen「Windows 已保护你的电脑」提示：
+   点击「更多信息」→「仍要运行」。
+2. 点击「打开本地文件夹」选择 Markdown 工作区。
+3. 文件直接读写本地磁盘，不会上传云端。
+4. 导出 PDF / HTML / DOCX / PNG 时会弹出保存位置对话框。
+
+说明
+----
+- 当前安装包未使用 Windows 代码签名证书，SmartScreen 可能提示未知发布者。
+- 应用数据保存在 %APPDATA%\Markdown studio。
+- 当前安装包在 macOS 上交叉构建，尚未在 Windows 实机执行安装/启动回归。
+- 校验：
+  certutil -hashfile Markdown-studio-2.0.0-x64-setup.exe SHA256
+  certutil -hashfile Markdown-studio-2.0.0-x64-portable.exe SHA256

@@ -4,4 +4,4 @@ dist/
 coverage/
 *.local
 *.tsbuildinfo
-release/
+/release/

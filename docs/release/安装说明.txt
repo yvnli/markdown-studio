@@ -1,0 +1,29 @@
+Markdown studio 2.0.0 · macOS Apple Silicon (arm64)
+====================================================
+
+English version: Installation-Guide-macOS.txt
+
+安装（DMG）
+-----------
+1. 双击 Markdown-studio-2.0.0-arm64.dmg。
+2. 把「Markdown studio.app」拖入「Applications / 应用程序」。
+3. 首次启动如被 Gatekeeper 拦截，请在 Finder 中右键该应用 →「打开」。
+
+安装（ZIP）
+-----------
+1. 解压 Markdown-studio-2.0.0-arm64.zip。
+2. 把「Markdown studio.app」拖入「应用程序」文件夹。
+
+说明
+----
+- 本次构建使用 ad-hoc 签名，未使用 Apple Developer ID 公证。
+- 面向 Apple Silicon Mac；Intel Mac 需要 x64 / Universal 构建。
+- 首次打开后，点击「打开本地文件夹」选择 Markdown 工作区。
+- 文件直接读写本地磁盘，数据不会上传云端。
+- 导出的 PDF / HTML / DOCX / PNG 会弹出保存位置对话框。
+
+校验
+----
+在 release/ 目录执行：
+  shasum -a 256 -c SHA256SUMS.txt
+

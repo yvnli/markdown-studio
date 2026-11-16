@@ -1,0 +1,36 @@
+Markdown studio 2.0.0 · Windows x64
+===================================
+
+Chinese version: Windows-安装说明.txt
+
+Installation
+------------
+Option A: Installer
+  Markdown-studio-2.0.0-x64-setup.exe
+  Double-click to run; you can choose the install directory, and desktop and Start menu shortcuts are created.
+
+Option B: Portable
+  Markdown-studio-2.0.0-x64-portable.exe
+  No installation required; double-click to run.
+
+System requirements
+-------------------
+Windows 10 / Windows 11, x64.
+Windows 11 ARM64 can run it through the built-in x64 emulation.
+
+First launch
+------------
+1. If SmartScreen shows "Windows protected your PC":
+   click "More info" -> "Run anyway".
+2. Click "Open Local Folder" to choose a Markdown workspace.
+3. Files are read from and written to the local disk directly; nothing is uploaded to the cloud.
+4. Exported PDF / HTML / DOCX / PNG files open a save-location dialog.
+
+Notes
+-----
+- The current installers are not code-signed with a Windows certificate, so SmartScreen may warn about an unknown publisher.
+- App data is stored in %APPDATA%\Markdown studio.
+- The current installers were cross-built on macOS and have not yet been installed or launched on a real Windows machine.
+- Verification:
+  certutil -hashfile Markdown-studio-2.0.0-x64-setup.exe SHA256
+  certutil -hashfile Markdown-studio-2.0.0-x64-portable.exe SHA256
