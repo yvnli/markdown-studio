@@ -97,8 +97,8 @@ export function InsertImageDialog({
     if (!value.trim()) return;
     if (!editorView) {
       pushToast({
-        title: '无法插入图片',
-        description: '请先打开一篇文档并切换到写作或分屏视图。',
+        title: 'Could not insert image',
+        description: 'Open a document and switch to Write or Split view first.',
         tone: 'error',
       });
       return;
@@ -127,14 +127,14 @@ export function InsertImageDialog({
 
   return (
     <Modal
-      title="插入图片"
-      description="相对路径以当前文档目录为基准；以 / 开头表示工作区根目录。"
+      title="Insert image"
+      description="Relative paths start from the current document's folder; a leading / means the workspace root."
       size="md"
       onClose={onClose}
       footer={
         <>
           <button type="button" className="secondary-button" onClick={onClose}>
-            取消
+            Cancel
           </button>
           <button
             type="button"
@@ -142,7 +142,7 @@ export function InsertImageDialog({
             disabled={!value.trim()}
             onClick={submit}
           >
-            {needsAttention ? '仍然插入' : '插入图片'}
+            {needsAttention ? 'Insert anyway' : 'Insert image'}
           </button>
         </>
       }
@@ -154,7 +154,7 @@ export function InsertImageDialog({
         }}
       >
         <div className="form-field">
-          <label htmlFor="insert-image-path">图片路径</label>
+          <label htmlFor="insert-image-path">Image path</label>
           <input
             id="insert-image-path"
             ref={inputRef}
@@ -165,7 +165,7 @@ export function InsertImageDialog({
             onChange={(event) => setValue(event.target.value)}
           />
           <span className="form-hint">
-            支持 {SUPPORTED_IMAGE_FORMATS_LABEL}，或 https:// / data: 图片。
+            Supports {SUPPORTED_IMAGE_FORMATS_LABEL}, plus https:// or data: images.
           </span>
         </div>
 
@@ -190,7 +190,7 @@ export function InsertImageDialog({
           <div className="image-insert-thumb">
             <img
               src={thumbnail}
-              alt="图片预览"
+              alt="Image preview"
               onError={() => setThumbnail(null)}
             />
           </div>
@@ -199,7 +199,7 @@ export function InsertImageDialog({
         {suggestions.length ? (
           <div className="image-suggestions">
             <span className="image-suggestions-label">
-              {value.trim() ? '工作区中的图片（点击替换为相对路径）' : '工作区中的图片'}
+              {value.trim() ? 'Images in the workspace (click to use the relative path)' : 'Images in the workspace'}
             </span>
             <div className="image-suggestion-list">
               {suggestions.map((suggestion) => (
@@ -220,14 +220,14 @@ export function InsertImageDialog({
         ) : null}
 
         <div className="form-field">
-          <label htmlFor="insert-image-alt">图片说明</label>
+          <label htmlFor="insert-image-alt">Alt text</label>
           <input
             id="insert-image-alt"
             value={alt}
             placeholder={defaultImageAlt(value)}
             onChange={(event) => setAlt(event.target.value)}
           />
-          <span className="form-hint">留空时使用文件名，方便屏幕阅读器与导出。</span>
+          <span className="form-hint">Leave empty to use the file name for screen readers and exports.</span>
         </div>
       </form>
     </Modal>

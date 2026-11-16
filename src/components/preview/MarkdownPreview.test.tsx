@@ -7,7 +7,7 @@ import { MarkdownPreview } from './MarkdownPreview';
 afterEach(cleanup);
 
 describe('MarkdownPreview', () => {
-  it('中文出现在数学模式里时不触发 KaTeX strict 警告', () => {
+  it('does not trigger KaTeX strict warnings when Chinese appears in math mode', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     try {
       const { container } = render(

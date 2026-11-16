@@ -132,7 +132,7 @@ export async function createExportPage(
 ): Promise<ExportPageResult> {
   ensureExportStyle();
   const contentHtml = await markdownToHtml(markdown);
-  const date = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long' }).format(new Date());
+  const date = new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(new Date());
   const host = document.createElement('div');
   host.className = 'export-render-host';
   host.dataset.theme = options.theme;
@@ -225,10 +225,11 @@ async function renderMermaidBlocks(article: HTMLElement, theme: 'light' | 'dark'
       wrapper.classList.add('mermaid-block-error');
       const title = document.createElement('div');
       title.className = 'mermaid-error-title';
-      title.textContent = '图表语法需要调整';
+      title.textContent = 'Diagram syntax needs attention';
       const message = document.createElement('pre');
       message.className = 'mermaid-error-message';
-      message.textContent = error instanceof Error ? error.message : 'Mermaid 语法无法解析。';
+      message.textContent =
+        error instanceof Error ? error.message : 'Mermaid syntax could not be parsed.';
       wrapper.append(title, message);
     }
     pre.replaceWith(wrapper);
@@ -274,7 +275,7 @@ function insertToc(article: HTMLElement): void {
   nav.className = 'export-toc';
   const title = document.createElement('p');
   title.className = 'export-toc-title';
-  title.textContent = '目录';
+  title.textContent = 'Table of contents';
   const list = document.createElement('ol');
   for (const heading of headings) {
     const item = document.createElement('li');

@@ -29,11 +29,11 @@ export function useFileTreeActions(
 
   const createEntry = useCallback(
     async (entryKind: 'file' | 'directory', parentPath: string, rawName: string) => {
-      if (!workspaceService.isConnected) throw new Error('请先打开本地工作区。');
+      if (!workspaceService.isConnected) throw new Error('Open a local workspace first.');
       const name = entryKind === 'file' ? ensureExtension(rawName) : rawName.trim();
-      if (!name) throw new Error('名称不能为空。');
+      if (!name) throw new Error("Name can't be empty.");
       const path = joinPath(parentPath, name);
-      if (await workspaceService.entryExists(path)) throw new Error('同名文件或文件夹已存在。');
+      if (await workspaceService.entryExists(path)) throw new Error('A file or folder with that name already exists.');
       if (entryKind === 'file') {
         await workspaceService.createFile(path, `# ${name.replace(/\.[^.]+$/, '')}\n`);
       } else {
@@ -42,7 +42,7 @@ export function useFileTreeActions(
       await refreshWorkspace({ silent: true });
       if (entryKind === 'file') await openPath(path);
       pushToast({
-        title: entryKind === 'file' ? 'Markdown 文件已创建' : '文件夹已创建',
+        title: entryKind === 'file' ? 'Markdown file created' : 'Folder created',
         description: path,
         tone: 'success',
       });
@@ -52,42 +52,42 @@ export function useFileTreeActions(
 
   const renameEntry = useCallback(
     async (node: TreeNode, rawName: string) => {
-      if (!workspaceService.isConnected) throw new Error('请先打开本地工作区。');
+      if (!workspaceService.isConnected) throw new Error('Open a local workspace first.');
       const fileName =
         node.kind === 'file' ? ensureExtension(rawName, getExtension(node.path)) : rawName.trim();
       const path = joinPath(getDirName(node.path), fileName);
       await workspaceService.renameEntry(node.path, path);
       useWorkspaceStore.getState().renameDocumentPaths(node.path, path);
       await refreshWorkspace({ silent: true });
-      pushToast({ title: '名称已更新', description: path, tone: 'success' });
+      pushToast({ title: 'Name updated', description: path, tone: 'success' });
     },
     [pushToast, refreshWorkspace],
   );
 
   const deleteEntry = useCallback(
     async (node: TreeNode) => {
-      if (!workspaceService.isConnected) throw new Error('请先打开本地工作区。');
+      if (!workspaceService.isConnected) throw new Error('Open a local workspace first.');
       await workspaceService.deleteEntry(node.path);
       useWorkspaceStore.getState().removeDocumentsByPathPrefix(node.path);
       await refreshWorkspace({ silent: true });
-      pushToast({ title: '已删除', description: node.path, tone: 'default' });
+      pushToast({ title: 'Deleted', description: node.path, tone: 'default' });
     },
     [pushToast, refreshWorkspace],
   );
 
   const moveEntry = useCallback(
     async (node: TreeNode, target: DirectoryNode) => {
-      if (!workspaceService.isConnected) throw new Error('请先打开本地工作区。');
+      if (!workspaceService.isConnected) throw new Error('Open a local workspace first.');
       if (
         node.path === target.path ||
         (node.kind === 'directory' && target.path.startsWith(`${node.path}/`))
       ) {
-        throw new Error('不能移动到自身或子文件夹。');
+        throw new Error("Can't move an item into itself or its subfolder.");
       }
       const nextPath = await workspaceService.moveEntry(node.path, target.path);
       useWorkspaceStore.getState().renameDocumentPaths(node.path, nextPath);
       await refreshWorkspace({ silent: true });
-      pushToast({ title: '已移动', description: nextPath, tone: 'success' });
+      pushToast({ title: 'Moved', description: nextPath, tone: 'success' });
     },
     [pushToast, refreshWorkspace],
   );

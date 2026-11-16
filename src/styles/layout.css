@@ -172,7 +172,8 @@
   border-left: 0.5px solid var(--line);
 }
 
-/* 没有打开文档、只查看图片时，预览区占满主区域，而不是留下半屏空白。 */
+/* With no document open and only an image shown, the preview fills the main area
+   instead of leaving half of it empty. */
 .workspace-panes[data-view="split"] .preview-pane.is-image-only {
   flex: 1 1 100%;
   border-left: 0;

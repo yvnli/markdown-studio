@@ -103,7 +103,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
         const paths = files.map((file) => file.path);
         indexRef.current = { key: cacheKey, paths };
         appliedOverridesRef.current = new Map();
-        // 索引只在这里整体下发一次；之后的查询仅发送查询条件。
+        // The index is sent once here; later queries only send the search criteria.
         workerRef.current?.setIndex(files);
         return paths;
       } finally {
@@ -128,8 +128,8 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
   }, [workspace.kind, workspace.openedAt, workspace.fileCount, workspaceStatus, treeSignature]);
 
   /**
-   * 把打开中的文档（含未保存内容）作为增量补丁同步给 Worker。
-   * 只有内容真正变化的文档才会被发送；关闭文档时回填磁盘内容。
+   * Sync open documents (including unsaved content) to the worker as incremental patches.
+   * Only documents whose content changed are sent; closing one restores the disk content.
    */
   const syncOpenDocumentOverrides = (worker: SearchClient) => {
     const documents = useWorkspaceStore.getState().documents.filter((document) => document.path);
@@ -145,7 +145,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
     }
     appliedOverridesRef.current = next;
     worker.updateIndex(changed);
-    // Worker 自己保留基准内容，关闭文档时只需要通知它撤销覆盖。
+    // The worker keeps the baseline content; on close, just tell it to drop the override.
     worker.resetOverrides(reset);
   };
 
@@ -182,7 +182,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
         }
       } catch (searchError) {
         if (runId === runIdRef.current) {
-          setError(searchError instanceof Error ? searchError.message : '搜索失败。');
+          setError(searchError instanceof Error ? searchError.message : 'Search failed.');
           setResponse(EMPTY_RESPONSE);
         }
       } finally {
@@ -229,7 +229,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
 
   const replaceAll = async () => {
     if (!connected) {
-      pushToast({ title: '示例工作区不可写', description: '打开本地文件夹后再使用替换。', tone: 'default' });
+      pushToast({ title: 'Sample workspace is read-only', description: 'Open a local folder to replace text.', tone: 'default' });
       return;
     }
     if (!query.trim()) return;
@@ -240,7 +240,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
       createMatcher(query, useRegex, caseSensitive);
     } catch (regexError) {
       pushToast({
-        title: '正则表达式无效',
+        title: 'Invalid regular expression',
         description: regexError instanceof Error ? regexError.message : undefined,
         tone: 'error',
       });
@@ -248,7 +248,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
     }
     const matchingPaths = await worker.matchingPaths({ query, useRegex, caseSensitive });
     if (!matchingPaths.length) return;
-    if (!window.confirm(`将在 ${matchingPaths.length} 个文件中替换全部匹配项，是否继续？`)) return;
+    if (!window.confirm(`Replace all matches in ${matchingPaths.length} files?`)) return;
 
     setReplacing(true);
     let changedFiles = 0;
@@ -275,17 +275,17 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
       await refreshWorkspace({ silent: true });
       await runSearch(query);
       pushToast({
-        title: '替换完成',
+        title: 'Replace complete',
         description:
           skippedDirty > 0
-            ? `${changedFiles} 个文件已更新，${skippedDirty} 个有未保存更改的文件已跳过`
-            : `${changedFiles} 个文件已更新`,
+            ? `${changedFiles} files updated, ${skippedDirty} with unsaved changes skipped`
+            : `${changedFiles} files updated`,
         tone: 'success',
         durationMs: 3600,
       });
     } catch (replaceError) {
       pushToast({
-        title: '替换失败',
+        title: 'Replace failed',
         description: replaceError instanceof Error ? replaceError.message : undefined,
         tone: 'error',
         durationMs: 4200,
@@ -304,7 +304,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
         (document) => document.path === result.path && document.origin === 'workspace' && isDocumentDirty(document),
       );
     if (dirtyDocument) {
-      pushToast({ title: '该文件有未保存更改', description: '请先保存后再替换。', tone: 'default' });
+      pushToast({ title: 'This file has unsaved changes', description: 'Save it before replacing.', tone: 'default' });
       return;
     }
     setReplacing(true);
@@ -312,7 +312,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
       const latest = await workspaceService.readTextFile(result.path);
       const lines = latest.content.split(/\r?\n/);
       const lineText = lines[match.line - 1];
-      if (lineText === undefined) throw new Error('文件内容已变化，请重新搜索。');
+      if (lineText === undefined) throw new Error('The file changed. Search again.');
       const regex = createMatcher(query, useRegex, caseSensitive);
       let candidate: RegExpExecArray | null = null;
       let found: RegExpExecArray | null;
@@ -321,7 +321,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
         candidate = found;
         if (found.index + 1 >= match.column) break;
       }
-      if (!candidate) throw new Error('匹配位置已变化，请重新搜索。');
+      if (!candidate) throw new Error('The match moved. Search again.');
       lines[match.line - 1] =
         lineText.slice(0, candidate.index) +
         replacement +
@@ -330,10 +330,10 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
       indexRef.current = null;
       await refreshWorkspace({ silent: true });
       await runSearch(query);
-      pushToast({ title: '已替换 1 处', tone: 'success', durationMs: 1600 });
+      pushToast({ title: 'Replaced 1 match', tone: 'success', durationMs: 1600 });
     } catch (replaceError) {
       pushToast({
-        title: '替换失败',
+        title: 'Replace failed',
         description: replaceError instanceof Error ? replaceError.message : undefined,
         tone: 'error',
       });
@@ -343,10 +343,11 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
   };
 
   const summary = useMemo(() => {
-    if (!query.trim()) return '搜索整个工作区的 Markdown 内容';
-    if (loading) return '正在搜索…';
-    if (response.truncated) return `显示前 ${response.total} 条结果`;
-    return `${response.total} 个结果 · ${Math.max(1, Math.round(response.durationMs))} ms`;
+    if (!query.trim()) return 'Search Markdown across the workspace';
+    if (loading) return 'Searching…';
+    const resultLabel = response.total === 1 ? 'result' : 'results';
+    if (response.truncated) return `Showing first ${response.total} ${resultLabel}`;
+    return `${response.total} ${resultLabel} · ${Math.max(1, Math.round(response.durationMs))} ms`;
   }, [loading, query, response.durationMs, response.total, response.truncated]);
 
   return (
@@ -358,12 +359,12 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
             ref={inputRef}
             type="search"
             value={query}
-            placeholder="搜索工作区"
-            aria-label="搜索工作区"
+            placeholder="Search workspace"
+            aria-label="Search workspace"
             onChange={(event) => setQuery(event.target.value)}
           />
           {query ? (
-            <button type="button" className="search-clear" aria-label="清除搜索" onClick={() => setQuery('')}>
+            <button type="button" className="search-clear" aria-label="Clear search" onClick={() => setQuery('')}>
               <X size={12} />
             </button>
           ) : null}
@@ -371,10 +372,10 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
         <button
           type="button"
           className={cn('search-option-button', showReplace && 'is-active')}
-          aria-label="显示替换"
+          aria-label="Show replace"
           aria-pressed={showReplace}
           onClick={() => setShowReplace((value) => !value)}
-          data-tip="显示替换"
+          data-tip="Show replace"
         >
           <Replace size={14} />
         </button>
@@ -386,7 +387,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
           className={cn('search-option-button', useRegex && 'is-active')}
           aria-pressed={useRegex}
           onClick={() => setUseRegex((value) => !value)}
-          title="使用正则表达式"
+          title="Use regular expression"
         >
           .*
         </button>
@@ -395,12 +396,12 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
           className={cn('search-option-button', caseSensitive && 'is-active')}
           aria-pressed={caseSensitive}
           onClick={() => setCaseSensitive((value) => !value)}
-          title="区分大小写"
+          title="Match case"
         >
           <CaseSensitive size={14} />
         </button>
         <span className="search-summary">{summary}</span>
-        <button type="button" className="search-refresh" onClick={refreshIndex} title="重建搜索索引" aria-label="重建搜索索引">
+        <button type="button" className="search-refresh" onClick={refreshIndex} title="Rebuild search index" aria-label="Rebuild search index">
           <RefreshCw size={12} className={indexing ? 'spin' : undefined} />
         </button>
       </div>
@@ -410,9 +411,9 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
           <input
             type="text"
             value={replacement}
-            placeholder={connected ? '替换为…' : '打开文件夹后可替换'}
+            placeholder={connected ? 'Replace with…' : 'Open a folder to replace'}
             disabled={!connected}
-            aria-label="替换为"
+            aria-label="Replace with"
             onChange={(event) => setReplacement(event.target.value)}
           />
           <button
@@ -422,7 +423,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
             onClick={() => void replaceAll()}
           >
             {replacing ? <Loader2 size={12} className="spin" /> : null}
-            全部替换
+            Replace all
           </button>
         </div>
       ) : null}
@@ -431,8 +432,8 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
         <div className="search-progress" role="status">
           <Loader2 size={12} className="spin" />
           {indexProgress
-            ? `正在建立索引 ${indexProgress.loaded}/${indexProgress.total}`
-            : '正在建立搜索索引…'}
+            ? `Indexing ${indexProgress.loaded}/${indexProgress.total}`
+            : 'Building search index…'}
         </div>
       ) : null}
 
@@ -442,7 +443,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
         {!loading && !indexing && query.trim() && !results.length && !error ? (
           <div className="search-empty">
             <Search size={18} />
-            <span>没有找到匹配的内容</span>
+            <span>No matches found</span>
           </div>
         ) : null}
         {results.map((result) => (
@@ -485,7 +486,7 @@ export function SearchPanel({ active, onOpenFile }: SearchPanelProps) {
                         className="search-single-replace"
                         disabled={!connected || replacing}
                         onClick={() => void replaceSingle(result, index)}
-                        title="替换这一处"
+                        title="Replace this match"
                       >
                         <Replace size={11} />
                       </button>

@@ -11,11 +11,11 @@ import {
 function document(overrides: Record<string, unknown> = {}): DocumentTab {
   return {
     id: 'doc-1',
-    title: '笔记',
+    title: 'Note',
     path: null,
     origin: 'scratch',
-    content: '# 标题',
-    savedContent: '# 标题',
+    content: '# Heading',
+    savedContent: '# Heading',
     lastModified: null,
     createdAt: 1,
     cursorLine: 1,
@@ -27,7 +27,7 @@ function document(overrides: Record<string, unknown> = {}): DocumentTab {
 describe('session payload', () => {
   it('drops the legacy dirty field and keeps derived state correct', () => {
     const [normalized] = normalizeSessionDocuments([
-      document({ dirty: true, content: '# 标题', savedContent: '# 旧标题' }),
+      document({ dirty: true, content: '# Heading', savedContent: '# Old heading' }),
     ]);
     expect(normalized).toBeDefined();
     expect(normalized).not.toHaveProperty('dirty');
@@ -77,7 +77,7 @@ describe('session payload', () => {
 
   it('computes per-document writes by reference identity', () => {
     const first = document({ id: 'doc-a' });
-    const second = document({ id: 'doc-b', title: '第二篇' });
+    const second = document({ id: 'doc-b', title: 'Second' });
     const edited = { ...first, content: 'edited' };
 
     expect(changedDocuments([first, second], [first, second]).upserts).toHaveLength(0);

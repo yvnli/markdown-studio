@@ -150,7 +150,7 @@ describe('useWorkspaceActions', () => {
       documentPath: null,
       title: 'photo.png',
     });
-    // 写作视图没有预览区：打开图片时自动切到分屏，让图片出现在预览面板里。
+    // Write view has no preview pane: opening an image switches to Split so the image appears there.
     expect(usePreferencesStore.getState().viewMode).toBe('split');
     expect(mocks.service.readTextFile).not.toHaveBeenCalled();
   });
@@ -170,6 +170,6 @@ describe('useWorkspaceActions', () => {
       expect.any(String),
       'image/png',
     );
-    expect(markdown).toBe('![粘贴的图片](../assets/image_1.png)');
+    expect(markdown).toBe('![Pasted image](../assets/image_1.png)');
   });
 });

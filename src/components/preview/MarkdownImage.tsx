@@ -55,9 +55,9 @@ export function MarkdownImage({ src, alt = '', title, documentPath }: MarkdownIm
 
   if (loading) {
     return (
-      <span className="markdown-image-loading" role="status" aria-label="正在加载图片">
+      <span className="markdown-image-loading" role="status" aria-label="Loading image">
         <Loader2 size={15} className="spin" aria-hidden="true" />
-        <span>正在读取图片…</span>
+        <span>Reading image…</span>
       </span>
     );
   }
@@ -65,30 +65,30 @@ export function MarkdownImage({ src, alt = '', title, documentPath }: MarkdownIm
   if (!resolvedSrc || failed) {
     const localExpected = analysis.kind === 'local' ? analysis.resolvedPath : null;
     const failureHint = (() => {
-      if (!src) return '图片地址为空。';
+      if (!src) return 'Image source is empty.';
       if (analysis.kind === 'external') {
-        return '网络图片加载失败，请检查链接是否可以直接访问。';
+        return 'Could not load the web image. Check that the link is directly accessible.';
       }
-      if (analysis.kind === 'data') return '内嵌图片数据无法解码，请重新粘贴图片。';
+      if (analysis.kind === 'data') return 'Could not decode the embedded image. Paste the image again.';
       if (!workspaceService.isConnected) {
-        return '尚未连接本地工作区，无法读取本地图片。打开文件夹后可正常显示。';
+        return 'No local workspace is connected, so local images cannot be read. Open a folder to display them.';
       }
       if (analysis.file && analysis.isImageFormat) {
-        return '文件存在，但当前浏览器无法解码这张图片。';
+        return 'The file exists, but this browser cannot decode the image.';
       }
       if (!analysis.isImageFormat) {
-        return `该路径不是可预览的图片格式。支持 ${SUPPORTED_IMAGE_FORMATS_LABEL}。`;
+        return `This path is not a previewable image format. Supported formats: ${SUPPORTED_IMAGE_FORMATS_LABEL}.`;
       }
-      return '工作区中找不到这张图片，请检查大小写与相对目录。';
+      return 'Image not found in the workspace. Check the capitalization and relative folder.';
     })();
     const suggested = analysis.sameName;
     return (
-      <span className="markdown-image-error" role="group" aria-label={alt || '图片加载失败'}>
+      <span className="markdown-image-error" role="group" aria-label={alt || 'Image failed to load'}>
         <ImageOff size={18} aria-hidden="true" />
         <span className="markdown-image-error-copy">
-          <strong>{alt || '图片无法加载'}</strong>
+          <strong>{alt || 'Image unavailable'}</strong>
           <span className="markdown-image-error-path">
-            {localExpected ? `解析为 ${localExpected}` : src || '（空路径）'}
+            {localExpected ? `Resolved to ${localExpected}` : src || '(empty path)'}
           </span>
           <span className="markdown-image-error-hint">{failureHint}</span>
           {localExpected &&
@@ -111,7 +111,7 @@ export function MarkdownImage({ src, alt = '', title, documentPath }: MarkdownIm
                 })
               }
             >
-              打开工作区中的同名图片：{suggested.path}
+              Open the matching image in the workspace: {suggested.path}
             </button>
           ) : null}
         </span>
@@ -123,10 +123,10 @@ export function MarkdownImage({ src, alt = '', title, documentPath }: MarkdownIm
     <button
       type="button"
       className="markdown-image-button"
-      aria-label={alt ? `查看大图：${alt}` : '查看大图'}
-      title={title || '查看大图'}
+      aria-label={alt ? `View larger image: ${alt}` : 'View larger image'}
+      title={title || 'View larger image'}
       onClick={(event) => {
-        // 图片可能被包在链接里：优先打开查看器，避免同时触发链接跳转。
+        // The image may be wrapped in a link: open the viewer first so the link is not followed.
         event.preventDefault();
         event.stopPropagation();
         openImagePreview({
@@ -137,7 +137,7 @@ export function MarkdownImage({ src, alt = '', title, documentPath }: MarkdownIm
             analysis.kind === 'local'
               ? analysis.resolvedPath ?? src ?? ''
               : analysis.kind === 'data'
-                ? '内嵌 Data URL 图片'
+                ? 'Embedded Data URL image'
                 : analysis.kind === 'external'
                   ? src ?? ''
                   : alt,

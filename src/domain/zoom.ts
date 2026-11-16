@@ -1,6 +1,6 @@
 /**
- * 预览缩放与图片查看器缩放的纯计算逻辑。
- * 组件只负责渲染，具体范围、步进和百分比的语义保持一致。
+ * Pure calculation logic for preview zoom and image viewer zoom.
+ * Components only render; ranges, steps, and percentage semantics stay consistent.
  */
 
 export const PREVIEW_ZOOM_MIN = 0.5;
@@ -25,7 +25,7 @@ export function normalizePreviewZoom(value: number): number {
   return roundTo(clamp(value, PREVIEW_ZOOM_MIN, PREVIEW_ZOOM_MAX), 2);
 }
 
-/** direction：1 放大，-1 缩小。 */
+/** direction: 1 zooms in, -1 zooms out. */
 export function stepPreviewZoom(zoom: number, direction: 1 | -1): number {
   return normalizePreviewZoom(normalizePreviewZoom(zoom) + direction * PREVIEW_ZOOM_STEP);
 }

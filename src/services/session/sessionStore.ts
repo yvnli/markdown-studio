@@ -9,7 +9,7 @@ const LEGACY_V1_KEY = 'mdstudio.session.v1';
 const FALLBACK_KEY = 'mdstudio.session.fallback.v2';
 const BACKUP_KEY = 'mdstudio.session.backup.v1';
 
-/** 32 MB 的估算上限（按 UTF-16 字符数粗估，真正写入由 IndexedDB 配额兜底）。 */
+/** Rough 32 MB estimate, measured in UTF-16 characters; the real cap is the IndexedDB quota. */
 export const SESSION_CHAR_LIMIT = 16 * 1024 * 1024;
 
 export interface SessionPayload {
@@ -84,7 +84,8 @@ export function parseSessionPayload(raw: string | null): SessionPayload | null {
 }
 
 /**
- * 计算需要写入的文档：对象引用未变化的文档视为未修改（store 采用不可变更新）。
+ * Determine which documents need writing: one whose object reference is unchanged
+ * counts as unmodified, since the store updates immutably.
  */
 export function changedDocuments(
   previous: readonly DocumentTab[],
@@ -147,13 +148,14 @@ async function loadFromIdb(): Promise<SessionPayload | null> {
 }
 
 /**
- * 优先读取 IndexedDB；若崩溃前写入的 localStorage 备份更新，则以备份内容覆盖对应文档。
+ * Read IndexedDB first; if the localStorage backup written before a crash is newer,
+ * let its content replace the matching documents.
  */
 export async function loadSession(): Promise<SessionPayload | null> {
   let stored = await loadFromIdb();
   if (!stored) stored = await loadLegacy();
 
-  // IDB 写入失败时可能退回单条 localStorage 快照；选择更新时间较新的一份。
+  // A failed IndexedDB write may fall back to a single localStorage snapshot; keep the newer one.
   const fallback = parseSessionPayload(
     typeof localStorage === 'undefined' ? null : localStorage.getItem(FALLBACK_KEY),
   );
@@ -189,7 +191,8 @@ export function serializedSize(payload: SessionPayload): number {
 }
 
 /**
- * 只写入发生变化的文档 + 元数据；失败时退化为单条 localStorage 快照。
+ * Write only changed documents plus metadata; on failure, fall back to a single
+ * localStorage snapshot.
  */
 export async function saveSession(
   payload: SessionPayload,
@@ -214,7 +217,8 @@ export async function saveSession(
 }
 
 /**
- * pagehide/beforeunload 时同步写入的兜底快照：只包含未保存内容，体积可控。
+ * Fallback snapshot written synchronously on pagehide/beforeunload: unsaved content only,
+ * so the size stays bounded.
  */
 export function saveSessionBackupSync(
   documents: DocumentTab[],
@@ -236,6 +240,6 @@ export function saveSessionBackupSync(
     };
     localStorage.setItem(BACKUP_KEY, JSON.stringify(backup));
   } catch {
-    // 备份失败不应阻塞退出。
+    // A failed backup should not block exit.
   }
 }

@@ -83,7 +83,7 @@ export function Modal({
             {description ? <p id={descriptionId}>{description}</p> : null}
           </div>
           {hideClose ? null : (
-            <button className="icon-button" type="button" onClick={onClose} aria-label="关闭">
+            <button className="icon-button" type="button" onClick={onClose} aria-label="Close">
               <X size={16} />
             </button>
           )}

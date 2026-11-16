@@ -143,7 +143,7 @@ npm run desktop:package
 | `npm run desktop:package` | 生成 macOS 安装包 |
 | `npm run dist:win` | 生成 Windows x64 NSIS 安装版和便携版 |
 
-当前验证结果：**93 个测试通过**；Web 生产构建、macOS 桌面打包和 Windows x64 交叉打包成功；2026-11-10 完成两轮架构优化（稳定文档 id、按文档 IndexedDB 会话、Worker 常驻搜索索引、桌面原生文件监听、视口级实时装饰、Electron 安全加固与首屏分块），详见 [docs/OPTIMIZATION-CHECKLIST.zh-CN.md](docs/OPTIMIZATION-CHECKLIST.zh-CN.md)；本地生产预览冷启动到编辑器约 **193 ms**、到首屏预览约 **207 ms**（1440×900，2026-11-09 实测）；约 6.5 万字符文档首次加载约 60 ms，滚动测试为 60 帧 / 秒，输入期间未检测到长任务。macOS 版已从 DMG 实际挂载启动，验证原生工作区读写、图片粘贴、搜索和上次工作区恢复；Windows 版已校验安装包内的 `MarkdownStudio.exe`、`app.asar` 和 NSIS 归档结构，但未进行 Windows 实机运行。
+当前验证结果：**96 个测试通过**；Web 生产构建、macOS 桌面打包和 Windows x64 交叉打包成功；2026-11-10 完成两轮架构优化（稳定文档 id、按文档 IndexedDB 会话、Worker 常驻搜索索引、桌面原生文件监听、视口级实时装饰、Electron 安全加固与首屏分块），详见 [docs/OPTIMIZATION-CHECKLIST.zh-CN.md](docs/OPTIMIZATION-CHECKLIST.zh-CN.md)；本地生产预览冷启动到编辑器约 **193 ms**、到首屏预览约 **207 ms**（1440×900，2026-11-09 实测）；约 6.5 万字符文档首次加载约 60 ms，滚动测试为 60 帧 / 秒，输入期间未检测到长任务。macOS 版已从 DMG 实际挂载启动，验证原生工作区读写、图片粘贴、搜索和上次工作区恢复；Windows 版已校验安装包内的 `MarkdownStudio.exe`、`app.asar` 和 NSIS 归档结构，但未进行 Windows 实机运行。
 
 ## 目录
 

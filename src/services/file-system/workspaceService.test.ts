@@ -192,7 +192,7 @@ describe('WorkspaceService', () => {
     expect(await service.resolveAssetObjectUrl('notes/alpha.md', '/assets/photo.png')).toBe(
       'blob:mock',
     );
-    // 不存在时保留原始路径，交由预览的路径提示说明。
+    // When missing, keep the original path and let the preview's path hint explain it.
     expect(await service.resolveAssetObjectUrl('notes/alpha.md', 'assets/photo.png')).toBe(
       'assets/photo.png',
     );

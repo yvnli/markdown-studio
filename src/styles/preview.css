@@ -20,8 +20,9 @@
 }
 
 /*
- * 预览缩放：使用 CSS zoom 缩放整篇排版（文字、图片、表格、代码一起缩放），
- * 同时反向补偿宽度，让阅读栏的视觉宽度保持不变，只改变内容大小。
+ * Preview zoom: CSS zoom scales the whole layout (text, images, tables, and code),
+ * while the width is compensated in reverse so the reading column keeps the same
+ * visual width and only the content size changes.
  */
 .preview-scroll .markdown-body {
   zoom: var(--preview-zoom, 1);

@@ -99,7 +99,7 @@ export default function App() {
     bridge.onOpenFolder(() => {
       void actions.openFolder();
     });
-    // 桌面端原生文件监听：发生外部变更时立即静默刷新，5 秒轮询仅作兜底。
+    // Native desktop file watcher: refresh silently on external changes; the 5-second poll is a fallback.
     bridge.onWorkspaceChanged(() => {
       void actions.refreshWorkspace({ silent: true });
     });
@@ -116,17 +116,17 @@ export default function App() {
     if (previewScrollRef.current) previewScrollRef.current.scrollTop = 0;
   }, [activeDocumentId, closeFind, setOutlineOpen]);
 
-  // 切到纯预览或关闭文档时编辑器视图会卸载，插入图片对话框不应悬空。
+  // The editor view unmounts in preview-only mode or with no document open, so close the image dialog.
   useEffect(() => {
     if (viewMode === 'preview' || !activeDocumentId) closeImageInsert();
   }, [activeDocumentId, closeImageInsert, viewMode]);
 
-  // 图片查看器依附于当前文档的预览区：切换文档时关闭，避免看到上一篇文档的图片。
+  // The image viewer belongs to the current document's preview; close it when switching documents.
   useEffect(() => {
     closeImagePreview();
   }, [activeDocumentId, closeImagePreview]);
 
-  // 图片查看器只存在于预览区；切回写作视图时一并关闭。
+  // The image viewer only exists in the preview; close it when returning to Write view.
   useEffect(() => {
     if (viewMode === 'write') closeImagePreview();
   }, [closeImagePreview, viewMode]);
@@ -225,8 +225,8 @@ export default function App() {
     const workspace = useWorkspaceStore.getState().workspace;
     if (workspace.kind !== 'file-system') {
       pushToast({
-        title: '示例工作区为只读',
-        description: '打开本地文件夹后即可创建文件。',
+        title: 'Sample workspace is read-only',
+        description: 'Open a local folder to create files.',
         tone: 'default',
       });
       return;
@@ -284,7 +284,7 @@ export default function App() {
           onCloseMobile={() => setMobileSidebarOpen(false)}
         />
         {isMobile && mobileSidebarOpen ? (
-          <button type="button" className="sidebar-scrim" aria-label="关闭侧边栏" onClick={() => setMobileSidebarOpen(false)} />
+          <button type="button" className="sidebar-scrim" aria-label="Close sidebar" onClick={() => setMobileSidebarOpen(false)} />
         ) : null}
         <main className="main-column">
           <EditorTabs />
@@ -309,7 +309,7 @@ export default function App() {
                   <Suspense
                     fallback={
                       <section className="preview-pane preview-pane-loading" aria-busy="true">
-                        <div className="preview-loading-hint">正在准备预览…</div>
+                        <div className="preview-loading-hint">Preparing preview…</div>
                       </section>
                     }
                   >
@@ -338,17 +338,17 @@ export default function App() {
               <div className="workspace-empty">
                 <EmptyState
                   icon={<CloudSun size={28} strokeWidth={1.4} />}
-                  title="开始一篇新文档"
-                  description="新建一篇本地草稿，或者打开一个文件夹，把文字留在自己的磁盘上。"
+                  title="Start a new document"
+                  description="Start a local draft, or open a folder to keep your words on your own disk."
                   action={
                     <div className="empty-actions">
                       <button type="button" className="primary-button" onClick={newScratchDocument}>
                         <FilePlus2 size={15} />
-                        新建文档
+                        New document
                       </button>
                       <button type="button" className="secondary-button" onClick={() => void actions.openFolder()}>
                         <FolderOpen size={15} />
-                        打开文件夹
+                        Open folder
                       </button>
                     </div>
                   }

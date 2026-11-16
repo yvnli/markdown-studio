@@ -142,10 +142,10 @@ export function FindBar({
   const summary = !query
     ? ''
     : error
-      ? '正则无效'
+      ? 'Invalid regex'
       : matches
         ? `${activeIndex + 1}/${matches}${truncated ? '+' : ''}`
-        : '无结果';
+        : 'No results';
   const noResults = Boolean(query) && !error && matches === 0;
   const preview = mode === 'preview';
 
@@ -153,7 +153,7 @@ export function FindBar({
     <div
       className={cn('editor-find', preview && 'is-preview')}
       role="search"
-      aria-label={preview ? '预览内查找' : '文件内查找与替换'}
+      aria-label={preview ? 'Find in preview' : 'Find and replace in file'}
       data-find-mode={mode}
     >
       <div className="editor-find-row">
@@ -161,9 +161,9 @@ export function FindBar({
           <button
             type="button"
             className={cn('editor-find-toggle', replaceVisible && 'is-open')}
-            aria-label={replaceVisible ? '隐藏替换' : '显示替换'}
+            aria-label={replaceVisible ? 'Hide replace' : 'Show replace'}
             aria-expanded={replaceVisible}
-            title={`${replaceVisible ? '隐藏替换' : '显示替换'} · ${altModShortcut('F')}`}
+            title={`${replaceVisible ? 'Hide replace' : 'Show replace'} · ${altModShortcut('F')}`}
             onMouseDown={(event) => event.preventDefault()}
             onClick={toggleReplace}
           >
@@ -178,9 +178,9 @@ export function FindBar({
             type="text"
             className="editor-find-input"
             value={query}
-            placeholder={preview ? '在预览中查找' : '查找'}
-            aria-label={preview ? '在预览中查找' : '在文件中查找'}
-            title={preview ? '预览视图仅支持查找，切换到写作或分屏可替换' : undefined}
+            placeholder={preview ? 'Find in preview' : 'Find'}
+            aria-label={preview ? 'Find in preview' : 'Find in file'}
+            title={preview ? 'Find only in Preview; switch to Write or Split to replace' : undefined}
             spellCheck={false}
             autoComplete="off"
             autoCorrect="off"
@@ -192,8 +192,8 @@ export function FindBar({
             <button
               type="button"
               className="editor-find-clear"
-              aria-label="清除查找"
-              title="清除查找"
+              aria-label="Clear find"
+              title="Clear find"
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
                 setFindQuery('');
@@ -212,9 +212,9 @@ export function FindBar({
         <button
           type="button"
           className={cn('editor-find-option', caseSensitive && 'is-active')}
-          aria-label="区分大小写"
+          aria-label="Match case"
           aria-pressed={caseSensitive}
-          title="区分大小写"
+          title="Match case"
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => setFindCaseSensitive(!caseSensitive)}
         >
@@ -223,9 +223,9 @@ export function FindBar({
         <button
           type="button"
           className={cn('editor-find-option', wholeWord && 'is-active')}
-          aria-label="全字匹配"
+          aria-label="Match whole word"
           aria-pressed={wholeWord}
-          title="全字匹配"
+          title="Match whole word"
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => setFindWholeWord(!wholeWord)}
         >
@@ -234,9 +234,9 @@ export function FindBar({
         <button
           type="button"
           className={cn('editor-find-option', useRegex && 'is-active')}
-          aria-label="使用正则表达式"
+          aria-label="Use regular expression"
           aria-pressed={useRegex}
-          title="使用正则表达式"
+          title="Use regular expression"
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => setFindUseRegex(!useRegex)}
         >
@@ -248,8 +248,8 @@ export function FindBar({
         <button
           type="button"
           className="editor-find-nav"
-          aria-label="上一个匹配"
-          title="上一个匹配 (Shift+Enter)"
+          aria-label="Previous match"
+          title="Previous match (Shift+Enter)"
           disabled={!matches}
           onMouseDown={(event) => event.preventDefault()}
           onClick={onPrev}
@@ -259,8 +259,8 @@ export function FindBar({
         <button
           type="button"
           className="editor-find-nav"
-          aria-label="下一个匹配"
-          title="下一个匹配 (Enter)"
+          aria-label="Next match"
+          title="Next match (Enter)"
           disabled={!matches}
           onMouseDown={(event) => event.preventDefault()}
           onClick={onNext}
@@ -270,8 +270,8 @@ export function FindBar({
         <button
           type="button"
           className="editor-find-close"
-          aria-label="关闭查找"
-          title="关闭 (Esc)"
+          aria-label="Close find"
+          title="Close (Esc)"
           onClick={onClose}
         >
           <X size={14} />
@@ -288,8 +288,8 @@ export function FindBar({
               type="text"
               className="editor-find-input"
               value={replacement}
-              placeholder="替换"
-              aria-label="替换为"
+              placeholder="Replace"
+              aria-label="Replace with"
               spellCheck={false}
               autoComplete="off"
               onChange={(event) => setFindReplacement(event.target.value)}
@@ -300,21 +300,21 @@ export function FindBar({
             type="button"
             className="editor-find-action"
             disabled={!matches}
-            title="替换当前匹配"
+            title="Replace this match"
             onMouseDown={(event) => event.preventDefault()}
             onClick={onReplaceCurrent}
           >
-            替换
+            Replace
           </button>
           <button
             type="button"
             className="editor-find-action"
             disabled={!matches || Boolean(error)}
-            title="全部替换"
+            title="Replace all"
             onMouseDown={(event) => event.preventDefault()}
             onClick={onReplaceAll}
           >
-            全部替换
+            Replace all
           </button>
         </div>
       ) : null}

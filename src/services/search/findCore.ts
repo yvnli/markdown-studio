@@ -46,7 +46,7 @@ function compile(
   } catch (error) {
     return {
       regexp: null,
-      error: error instanceof Error ? error.message : '正则表达式无效。',
+      error: error instanceof Error ? error.message : 'Invalid regular expression.',
     };
   }
 }

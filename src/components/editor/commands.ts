@@ -188,7 +188,7 @@ export function insertLink(view: EditorView): void {
   const from = Math.min(selection.from, selection.to);
   const to = Math.max(selection.from, selection.to);
   const selected = view.state.sliceDoc(from, to);
-  const label = selected || '链接文字';
+  const label = selected || 'Link text';
   const url = 'https://';
   const insert = `[${label}](${url})`;
   const urlStart = from + 1 + label.length + 2;
@@ -205,8 +205,8 @@ export function insertImagePlaceholder(view: EditorView): void {
   const from = Math.min(selection.from, selection.to);
   const to = Math.max(selection.from, selection.to);
   const selected = view.state.sliceDoc(from, to);
-  const alt = selected || '图片说明';
-  const src = '图片地址';
+  const alt = selected || 'Image description';
+  const src = 'Image URL';
   const insert = `![${alt}](${src})`;
   const srcStart = from + 2 + alt.length + 2;
   view.dispatch({
@@ -270,8 +270,8 @@ function replaceSelectionWithBlock(view: EditorView, block: string, original: st
 export function insertTable(view: EditorView): void {
   insertBlock(
     view,
-    '| 列一 | 列二 | 列三 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |',
-    '列一',
+    '| Column 1 | Column 2 | Column 3 |\n| --- | --- | --- |\n| Content | Content | Content |',
+    'Column 1',
   );
 }
 
@@ -288,8 +288,8 @@ export function insertMath(view: EditorView): void {
 export function insertMermaid(view: EditorView): void {
   insertBlock(
     view,
-    '```mermaid\nflowchart LR\n  A[想法] --> B[成稿]\n```',
-    'A[想法] --> B[成稿]',
+    '```mermaid\nflowchart LR\n  A[Idea] --> B[Draft]\n```',
+    'A[Idea] --> B[Draft]',
   );
 }
 
@@ -309,13 +309,13 @@ export function runFormatAction(view: EditorView, action: FormatAction): boolean
       applyHeading(view, 3);
       return true;
     case 'bold':
-      toggleInline(view, '**', '**', '粗体文字');
+      toggleInline(view, '**', '**', 'Bold text');
       return true;
     case 'italic':
-      toggleInline(view, '*', '*', '斜体文字');
+      toggleInline(view, '*', '*', 'Italic text');
       return true;
     case 'strike':
-      toggleInline(view, '~~', '~~', '删除的文字');
+      toggleInline(view, '~~', '~~', 'Strikethrough text');
       return true;
     case 'code':
       insertCode(view);
@@ -357,7 +357,7 @@ export function runFormatAction(view: EditorView, action: FormatAction): boolean
 
 export function insertImageMarkdown(view: EditorView, markdown: string): void {
   const selection = view.state.selection.main;
-  // 插入图片时替换选区，避免把选中的文字同时留在图片 alt 与正文里。
+  // Replace the selection so selected text does not linger in both the image alt text and the body.
   view.dispatch({
     changes: { from: selection.from, to: selection.to, insert: markdown },
     selection: EditorSelection.cursor(selection.from + markdown.length),

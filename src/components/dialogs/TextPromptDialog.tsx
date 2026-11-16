@@ -19,7 +19,7 @@ export function TextPromptDialog({
   label,
   initialValue = '',
   placeholder,
-  confirmLabel = '创建',
+  confirmLabel = 'Create',
   onClose,
   onConfirm,
 }: TextPromptDialogProps) {
@@ -45,7 +45,7 @@ export function TextPromptDialog({
       await onConfirm(value.trim());
       onClose();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : '操作失败，请重试。');
+      setError(submitError instanceof Error ? submitError.message : 'Something went wrong. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -60,7 +60,7 @@ export function TextPromptDialog({
       footer={
         <>
           <button type="button" className="secondary-button" onClick={onClose} disabled={busy}>
-            取消
+            Cancel
           </button>
           <button
             type="button"

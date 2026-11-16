@@ -2,25 +2,31 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 /**
- * 首屏 chunk 预算（kB），与 Vite 默认的 500 kB 告警线保持一致。
- * 真正影响启动速度的是“入口静态依赖”，所以这条线单独由 initialChunkBudget 插件把关。
+ * Initial chunk budget (kB), aligned with Vite's default 500 kB warning threshold.
+ * What actually affects startup time is the "static entry dependencies", so this
+ * threshold is enforced separately by the initialChunkBudget plugin.
  */
 const INITIAL_CHUNK_BUDGET_KB = 500;
 
 /**
- * 有两个第三方库是作者预打包好的单文件，任何 chunk 策略都拆不开：
- * - elkjs/lib/elk.bundled.js（压缩后约 1.46 MB，只在渲染 architecture 图时按需加载）
- * - @mermaid-js/parser 的预打包 chunk（约 629 kB，同样按需）
- * 全局阈值必须放宽到它们之上，否则每次构建都会出现无法处理的告警；
- * 作为补偿，initialChunkBudget 会继续按 500 kB 检查首屏静态依赖。
+ * Two third-party libraries are shipped by their authors as pre-bundled single files
+ * that no chunking strategy can split:
+ * - elkjs/lib/elk.bundled.js (about 1.46 MB minified, loaded on demand only when rendering
+ *   the architecture diagram)
+ * - the pre-bundled @mermaid-js/parser chunk (about 629 kB, also on demand)
+ * The global threshold must be raised above them, or every build emits warnings we cannot
+ * resolve. As compensation, initialChunkBudget keeps enforcing the 500 kB budget on
+ * initial static dependencies.
  */
 const VENDOR_CHUNK_WARNING_LIMIT = 1600;
 
 /**
- * 从模块 id 中取出包名（含 scope），按包归组，避免脆弱的字符串前缀匹配。
+ * Extract the package name (including scope) from a module id and group by package,
+ * avoiding fragile string-prefix matching.
  *
- * 只认最外层的 node_modules：像 `mermaid/node_modules/katex` 这种嵌套副本会归属到
- * 它的父包（mermaid），跟随父包的按需加载路径，而不会被拽进首屏分组。
+ * Only the outermost node_modules counts: a nested copy such as
+ * `mermaid/node_modules/katex` belongs to its parent package (mermaid) and follows the
+ * parent's on-demand path instead of being pulled into an initial group.
  */
 function packageNameOf(id: string): string {
   const match = id.match(/[\\/]node_modules[\\/](@[^\\/]+[\\/][^\\/]+|[^\\/]+)/);
@@ -34,8 +40,9 @@ interface VendorGroup {
 }
 
 /**
- * 声明一个 vendor 分组。只需列出“入口包”，rolldown 默认会递归收拢它们的依赖；
- * 已被更高优先级分组拿走的模块不会被重复捕获。
+ * Declare a vendor group. List only the "entry packages"; rolldown collects their
+ * dependencies recursively by default, and modules already claimed by a higher-priority
+ * group are not captured again.
  */
 function vendorGroup(name: string, packages: string[], priority: number): VendorGroup {
   const allowed = new Set(packages);
@@ -47,17 +54,20 @@ function vendorGroup(name: string, packages: string[], priority: number): Vendor
 }
 
 /**
- * 分组原则：首屏依赖（React、CodeMirror、状态库）与按需依赖（预览、导出、Mermaid）
- * 严格分开，避免按需加载的库被并进首屏 chunk；同时把体积较大的家族按依赖边界
- * 拆成多个 chunk，而不是继续堆在 manualChunks 里的单个巨型 vendor 里。
+ * Grouping principle: keep initial dependencies (React, CodeMirror, state libraries)
+ * strictly separate from on-demand dependencies (preview, export, Mermaid) so lazily
+ * loaded libraries are not merged into initial chunks. Split large families into several
+ * chunks along dependency boundaries instead of piling them into one giant vendor chunk
+ * in manualChunks.
  */
 const vendorGroups: VendorGroup[] = [
-  // 首屏必需：React 运行时、全局状态、图标。
+  // Required for the initial screen: React runtime, global state, icons.
   vendorGroup('vendor-react', ['react', 'react-dom', 'scheduler'], 40),
   vendorGroup('vendor-state', ['zustand', 'idb-keyval'], 40),
   vendorGroup('vendor-icons', ['lucide-react'], 40),
-  // CodeMirror 编辑器内核（301 kB）与 Markdown/HTML 语言包（210 kB）分开，
-  // 两者都在首屏静态图里，但拆开后每个 chunk 都远离 500 kB 阈值。
+  // Keep the CodeMirror editor core (301 kB) separate from the Markdown/HTML language
+  // packages (210 kB); both are in the initial static graph, but once split apart each
+  // chunk stays well under the 500 kB threshold.
   vendorGroup(
     'vendor-codemirror',
     [
@@ -76,7 +86,8 @@ const vendorGroups: VendorGroup[] = [
     ['@codemirror/lang-markdown', '@lezer/common', '@lezer/highlight', '@lezer/lr', '@lezer/markdown'],
     30,
   ),
-  // 预览管线按“解析”（remark/unified，140 kB）与“渲染”（react-markdown/rehype，320 kB）拆分。
+  // Split the preview pipeline into parsing (remark/unified, 140 kB) and rendering
+  // (react-markdown/rehype, 320 kB).
   vendorGroup(
     'vendor-markdown-parse',
     ['unified', 'remark-parse', 'remark-gfm', 'remark-math', 'remark-rehype'],
@@ -87,7 +98,7 @@ const vendorGroups: VendorGroup[] = [
     ['react-markdown', 'rehype-katex', 'rehype-slug', 'rehype-stringify'],
     20,
   ),
-  // 代码高亮只在预览里出现代码块时加载。
+  // Syntax highlighting loads only when the preview contains a code block.
   vendorGroup('vendor-highlight', ['highlight.js'], 20),
 ];
 
@@ -105,8 +116,9 @@ const CSP = [
 ].join('; ');
 
 /**
- * 只在生产构建注入 CSP：Vite dev server 的 HMR 与 React Refresh 依赖内联脚本/WebSocket，
- * 静态 meta 会破坏开发模式。Electron 与 Web 生产包都会带上这份策略。
+ * Inject CSP only in production builds: the Vite dev server's HMR and React Refresh rely on
+ * inline scripts and WebSockets, and a static meta tag would break dev mode. Both the
+ * Electron and web production bundles carry this policy.
  */
 function contentSecurityPolicy() {
   return {
@@ -122,12 +134,13 @@ function contentSecurityPolicy() {
 }
 
 /**
- * 首屏预算守卫。
+ * Initial chunk budget guard.
  *
- * Vite 自带的告警会把“按需加载的 Mermaid 引擎”和“首屏代码”放在同一把尺子下，
- * 而预打包的 elk.bundled.js 永远超过 500 kB。这里只沿着入口的静态 import 走一遍，
- * 对真正会被首屏请求的 chunk 重新施加 500 kB 预算：首屏变大时依旧会告警，
- * 惰性加载的图表/导出引擎则不会制造噪音。
+ * Vite's built-in warning measures the on-demand Mermaid engine and the initial code with
+ * the same ruler, while the pre-bundled elk.bundled.js is always over 500 kB. This walks
+ * only the static imports from the entry and reapplies the 500 kB budget to the chunks
+ * actually requested on the initial screen: it still warns when the initial payload grows,
+ * while lazily loaded diagram and export engines add no noise.
  */
 function initialChunkBudget(): Plugin {
   return {
@@ -139,7 +152,8 @@ function initialChunkBudget(): Plugin {
       );
       const byFileName = new Map(chunks.map((chunk) => [chunk.fileName, chunk]));
 
-      // 首屏 = 入口 chunk 沿静态 import 能到达的全部 chunk（Vite 会为它们注入 modulepreload）。
+      // Initial = every chunk reachable from the entry chunk along static imports (Vite
+      // injects modulepreload for them).
       const initial = new Set<string>();
       const collect = (fileName: string) => {
         if (initial.has(fileName)) return;
@@ -162,9 +176,9 @@ function initialChunkBudget(): Plugin {
 
       if (oversized.length === 0) return;
       this.warn(
-        `首屏 chunk 超过 ${INITIAL_CHUNK_BUDGET_KB} kB 预算：\n` +
+        `Initial chunk exceeds the ${INITIAL_CHUNK_BUDGET_KB} kB budget:\n` +
           oversized.map((c) => `  ${c.fileName} — ${(c.size / 1000).toFixed(1)} kB`).join('\n') +
-          '\n请把非必要的依赖改成动态 import，或确认它确实必须同步加载。',
+          '\nMake non-essential dependencies dynamic imports, or confirm they truly must load synchronously.',
       );
     },
   };
@@ -186,11 +200,12 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: false,
-    // 放宽只是因为上面提到的两个预打包单文件；首屏预算由 initialChunkBudget 单独把关。
+    // Raised only because of the two pre-bundled single files mentioned above; the initial
+    // budget is enforced separately by initialChunkBudget.
     chunkSizeWarningLimit: VENDOR_CHUNK_WARNING_LIMIT,
     rolldownOptions: {
       output: {
-        // 用 codeSplitting.groups 取代已废弃的 manualChunks（Vite 8 / rolldown）。
+        // Use codeSplitting.groups instead of the deprecated manualChunks (Vite 8 / rolldown).
         codeSplitting: {
           groups: vendorGroups,
         },

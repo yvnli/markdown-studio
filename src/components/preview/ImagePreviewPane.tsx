@@ -38,8 +38,8 @@ interface NaturalSize {
 }
 
 /**
- * 预览区内的图片查看器：只覆盖 Markdown 预览面板的内容区，
- * 不占用应用标题栏、侧栏或编辑区。
+ * Image viewer inside the preview pane. It covers only the Markdown preview
+ * content area, leaving the title bar, sidebar, and editor untouched.
  */
 export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
   const titleId = useId();
@@ -74,19 +74,19 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
   const title =
     request.title?.trim() ||
     (analysis.kind === 'local'
-      ? getFileName(analysis.resolvedPath ?? '') || '图片预览'
+      ? getFileName(analysis.resolvedPath ?? '') || 'Image preview'
       : analysis.kind === 'external'
-        ? getFileName(request.src.split(/[?#]/)[0] ?? '') || '网络图片'
+        ? getFileName(request.src.split(/[?#]/)[0] ?? '') || 'Web image'
         : analysis.kind === 'data'
-          ? '内嵌图片'
-          : '图片预览');
+          ? 'Embedded image'
+          : 'Image preview');
 
   const displayPath =
     request.pathLabel?.trim() ||
     (analysis.kind === 'local'
       ? analysis.resolvedPath ?? request.src
       : analysis.kind === 'data'
-        ? '内嵌 Data URL 图片'
+        ? 'Embedded Data URL image'
         : request.src);
 
   useEffect(() => {
@@ -157,7 +157,7 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
     setScale((previous) => stepImageZoom(previous, direction));
   }, []);
 
-  // Ctrl / ⌘ + 滚轮缩放，并以鼠标位置为锚点调整滚动。
+  // Ctrl / ⌘ + wheel zooms, anchoring the scroll position on the pointer.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -193,7 +193,8 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
     canvas.scrollTop = natural.height * scale * anchor.ratioY - anchor.offsetY;
   }, [natural.height, natural.width, scale]);
 
-  // 预览区不是模态层：编辑区、侧栏仍可操作，因此只在非输入状态下响应快捷键。
+  // The preview pane is not modal: the editor and sidebar stay usable, so shortcuts
+  // only respond when focus is outside an input.
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
@@ -278,7 +279,7 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
       className="image-preview-pane"
       role="region"
       aria-labelledby={titleId}
-      aria-label="图片预览"
+      aria-label="Image preview"
     >
       <header className="image-preview-header">
         <span className="image-preview-icon" aria-hidden="true">
@@ -293,7 +294,7 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
       <div
         ref={canvasRef}
         className={`image-preview-canvas${dragging ? ' is-dragging' : ''}`}
-        aria-label="图片画布；拖拽平移，Ctrl 或 ⌘ 加滚轮缩放"
+        aria-label="Image canvas; drag to pan, Ctrl or ⌘ plus wheel to zoom"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
@@ -322,7 +323,7 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
           <div className="image-preview-status" role="status">
             <div className="image-preview-status-card">
               <Loader2 size={22} className="spin" aria-hidden="true" />
-              <strong>正在读取图片…</strong>
+              <strong>Reading image…</strong>
               <p>{displayPath}</p>
             </div>
           </div>
@@ -341,7 +342,7 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
               ) : null}
               {analysis.isImageFormat ? null : (
                 <span className="image-preview-status-hint">
-                  支持的图片格式：{SUPPORTED_IMAGE_FORMATS_LABEL}。
+                  Supported image formats: {SUPPORTED_IMAGE_FORMATS_LABEL}.
                 </span>
               )}
               {analysis.sameName ? (
@@ -357,7 +358,7 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
                     })
                   }
                 >
-                  打开工作区中的同名图片：{analysis.sameName.path}
+                  Open the matching image in the workspace: {analysis.sameName.path}
                 </button>
               ) : null}
             </div>
@@ -370,8 +371,8 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
           <button
             type="button"
             className="image-preview-tool"
-            aria-label="缩小图片"
-            title="缩小图片"
+            aria-label="Zoom out"
+            title="Zoom out"
             onClick={() => zoomBy(-1)}
           >
             <ZoomOut size={14} />
@@ -379,8 +380,8 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
           <button
             type="button"
             className="image-preview-zoom-value"
-            aria-label={`图片缩放 ${formatZoomPercent(scale)}，点击适应窗口`}
-            title="适应窗口"
+            aria-label={`Image zoom ${formatZoomPercent(scale)}. Click to fit the window.`}
+            title="Fit to window"
             onClick={applyFit}
           >
             {formatZoomPercent(normalizeImageZoom(scale))}
@@ -388,8 +389,8 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
           <button
             type="button"
             className="image-preview-tool"
-            aria-label="放大图片"
-            title="放大图片"
+            aria-label="Zoom in"
+            title="Zoom in"
             onClick={() => zoomBy(1)}
           >
             <ZoomIn size={14} />
@@ -399,18 +400,18 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
         <button
           type="button"
           className="image-preview-tool"
-          aria-label="适应窗口"
-          title="适应窗口（⌘0）"
+          aria-label="Fit to window"
+          title="Fit to window (⌘0)"
           onClick={applyFit}
         >
           <Maximize2 size={13} />
-          <span>适应窗口</span>
+          <span>Fit to window</span>
         </button>
         <button
           type="button"
           className="image-preview-tool image-preview-actual"
-          aria-label="按原始尺寸 1:1 显示"
-          title="原始尺寸 1:1"
+          aria-label="Show at original size (1:1)"
+          title="Original size (1:1)"
           onClick={() => setScale(1)}
         >
           <span>1:1</span>
@@ -424,11 +425,11 @@ export function ImagePreviewPane({ request, onClose }: ImagePreviewPaneProps) {
 type ImageKind = ReturnType<typeof analyzeImagePath>['kind'];
 
 function errorTitle(kind: ImageKind, fileExists: boolean, connected: boolean): string {
-  if (kind === 'external') return '网络图片加载失败';
-  if (kind === 'data') return '内嵌图片无法解码';
-  if (!connected) return '需要先连接本地工作区';
-  if (fileExists) return '无法解码这张图片';
-  return '找不到这张图片';
+  if (kind === 'external') return 'Could not load web image';
+  if (kind === 'data') return 'Could not decode embedded image';
+  if (!connected) return 'Connect a local workspace first';
+  if (fileExists) return 'Could not decode this image';
+  return 'Image not found';
 }
 
 function errorMessage(
@@ -437,19 +438,19 @@ function errorMessage(
   connected: boolean,
 ): string {
   if (analysis.kind === 'external') {
-    return '请检查图片链接是否可以公开访问，或稍后重试。';
+    return 'Check that the image link is publicly accessible, or try again later.';
   }
   if (analysis.kind === 'data') {
-    return '图片数据可能不完整，请重新粘贴图片后再试。';
+    return 'The image data may be incomplete. Paste the image again and retry.';
   }
   if (!connected) {
-    return '本地图片需要先打开一个工作区。打开文件夹后即可在预览中查看。';
+    return 'Local images need an open workspace. Open a folder to view them in the preview.';
   }
   if (fileExists && analysis.isImageFormat) {
-    return '文件存在，但当前浏览器无法解码这张图片。';
+    return 'The file exists, but this browser cannot decode the image.';
   }
   if (!analysis.isImageFormat) {
-    return '该路径不是可预览的图片格式。';
+    return 'This path is not a previewable image format.';
   }
-  return analysis.hint ?? '请确认图片路径是否相对当前文档或工作区根目录。';
+  return analysis.hint ?? 'Check whether the image path is relative to the document or the workspace root.';
 }

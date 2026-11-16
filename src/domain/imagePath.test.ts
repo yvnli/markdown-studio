@@ -51,11 +51,11 @@ describe('analyzeImagePath', () => {
     expect(parent.resolvedPath).toBe('assets/photo.png');
     expect(parent.file?.path).toBe('assets/photo.png');
     expect(parent.tone).toBe('success');
-    expect(parent.detail).toContain('相对 notes');
+    expect(parent.detail).toContain('Relative to notes');
 
     const root = analyzeImagePath('/assets/photo.png', 'notes/a.md', assets);
     expect(root.resolvedPath).toBe('assets/photo.png');
-    expect(root.detail).toContain('工作区根目录');
+    expect(root.detail).toContain('workspace root');
   });
 
   it('suggests a same-name image when the relative directory is wrong', () => {
@@ -76,8 +76,8 @@ describe('analyzeImagePath', () => {
       connected: false,
     });
     expect(missing.tone).toBe('warning');
-    expect(missing.detail).toContain('未连接');
-    expect(missing.hint).toContain('打开本地工作区');
+    expect(missing.detail).toContain('no local workspace connected');
+    expect(missing.hint).toContain('Open a local workspace');
   });
 
   it('recognizes external and embedded image sources', () => {
@@ -139,7 +139,7 @@ describe('markdown image helpers', () => {
 
   it('derives and escapes alt text', () => {
     expect(defaultImageAlt('../assets/my photo.png')).toBe('my photo');
-    expect(defaultImageAlt('data:image/png;base64,AAAA')).toBe('图片');
+    expect(defaultImageAlt('data:image/png;base64,AAAA')).toBe('Image');
     expect(escapeMarkdownAlt('a [b] c')).toBe('a \\[b\\] c');
   });
 });

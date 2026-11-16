@@ -25,10 +25,10 @@ const formats: Array<{
   description: string;
   icon: typeof FileText;
 }> = [
-  { value: 'pdf', label: 'PDF', description: '分页、适合打印', icon: FileText },
-  { value: 'html', label: 'HTML', description: '独立网页文件', icon: Code2 },
-  { value: 'docx', label: 'Word', description: '.docx 文档', icon: FileText },
-  { value: 'png', label: '长图', description: '完整内容快照', icon: ImageIcon },
+  { value: 'pdf', label: 'PDF', description: 'Paginated, print-ready', icon: FileText },
+  { value: 'html', label: 'HTML', description: 'Standalone web page', icon: Code2 },
+  { value: 'docx', label: 'Word', description: '.docx document', icon: FileText },
+  { value: 'png', label: 'Long image', description: 'Full-content snapshot', icon: ImageIcon },
 ];
 
 export function ExportDialog({ initialFormat = 'pdf', onClose }: ExportDialogProps) {
@@ -71,14 +71,14 @@ export function ExportDialog({ initialFormat = 'pdf', onClose }: ExportDialogPro
       });
       downloadBlob(result.blob, result.filename);
       pushToast({
-        title: '导出完成',
+        title: 'Export complete',
         description: result.filename,
         tone: 'success',
         durationMs: 2600,
       });
       onClose();
     } catch (exportError) {
-      setError(exportError instanceof Error ? exportError.message : '导出失败，请重试。');
+      setError(exportError instanceof Error ? exportError.message : 'Export failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -86,19 +86,19 @@ export function ExportDialog({ initialFormat = 'pdf', onClose }: ExportDialogPro
 
   return (
     <Modal
-      title="导出文档"
-      description={document ? document.title : '没有打开的文档'}
+      title="Export document"
+      description={document ? document.title : 'No document open'}
       onClose={onClose}
       size="md"
       hideClose={busy}
       footer={
         <>
           <button type="button" className="secondary-button" onClick={onClose} disabled={busy}>
-            取消
+            Cancel
           </button>
           <button type="button" className="primary-button" onClick={() => void runExport()} disabled={busy || !document}>
             {busy ? <Loader2 size={14} className="spin" /> : null}
-            导出 {format.toUpperCase()}
+            Export {format.toUpperCase()}
           </button>
         </>
       }
@@ -129,7 +129,7 @@ export function ExportDialog({ initialFormat = 'pdf', onClose }: ExportDialogPro
             checked={options.includeToc}
             onChange={(event) => updateOption('includeToc', event.target.checked)}
           />
-          包含目录
+          Include table of contents
         </label>
         <label className="checkbox-row">
           <input
@@ -137,7 +137,7 @@ export function ExportDialog({ initialFormat = 'pdf', onClose }: ExportDialogPro
             checked={options.includeHeader}
             onChange={(event) => updateOption('includeHeader', event.target.checked)}
           />
-          包含页眉
+          Include header
         </label>
         <label className="checkbox-row">
           <input
@@ -145,15 +145,15 @@ export function ExportDialog({ initialFormat = 'pdf', onClose }: ExportDialogPro
             checked={options.includeFooter}
             onChange={(event) => updateOption('includeFooter', event.target.checked)}
           />
-          包含页脚
+          Include footer
         </label>
       </div>
 
       {format !== 'docx' ? (
         <div className="settings-row export-theme-row">
           <div className="settings-row-copy">
-            <strong>导出主题</strong>
-            <span>PDF、HTML 和长图会使用同一套黑白主题</span>
+            <strong>Export theme</strong>
+            <span>PDF, HTML, and long images share the same black-and-white theme</span>
           </div>
           <div className="settings-choice">
             <button
@@ -162,7 +162,7 @@ export function ExportDialog({ initialFormat = 'pdf', onClose }: ExportDialogPro
               onClick={() => updateOption('theme', 'light')}
             >
               <Sun size={13} />
-              白色
+              Light
             </button>
             <button
               type="button"
@@ -170,14 +170,14 @@ export function ExportDialog({ initialFormat = 'pdf', onClose }: ExportDialogPro
               onClick={() => updateOption('theme', 'dark')}
             >
               <Moon size={13} />
-              深色
+              Dark
             </button>
           </div>
         </div>
       ) : null}
 
       <p className="export-note">
-        PDF 与长图按当前排版快照生成；HTML 中的数学字体通过 KaTeX CDN 加载。导出的内容不包含编辑器界面。
+        PDF and long images are generated from the current layout snapshot. Math fonts in HTML load from the KaTeX CDN. Exports don't include the editor interface.
       </p>
       {error ? <div className="form-error" role="alert">{error}</div> : null}
     </Modal>

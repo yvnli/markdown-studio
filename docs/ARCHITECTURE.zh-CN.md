@@ -715,7 +715,7 @@ flowchart LR
 
 ### 14.2 测试覆盖
 
-当前 **93 个测试**：
+当前 **96 个测试**：
 
 - 工作区 store：稳定 id、派生 dirty、切换前 dirty 收集、并发打开去重、失效路径转离线草稿、扫描签名不变时跳过更新。
 - 工作区动作：切换前落盘顺序、写入失败中止切换、未连接时拒绝切换、按 id 保存、按发起文档解析图片路径、图片文件路由到查看器。
@@ -742,7 +742,7 @@ flowchart LR
 npm ci（跳过 Electron 二进制下载）→ lint → typecheck → test → build
 ```
 
-CI 负责 Web 构建与 93 个测试；桌面安装包在 macOS 构建机执行 `npm run desktop:package`（macOS）或 `npm run dist:win`（Windows）。
+CI 负责 Web 构建与 96 个测试；桌面安装包在 macOS 构建机执行 `npm run desktop:package`（macOS）或 `npm run dist:win`（Windows）。
 
 ### 14.4 手工验收
 

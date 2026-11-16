@@ -78,7 +78,7 @@ export class DesktopWorkspaceService implements WorkspaceServiceContract {
     const normalized = normalizePath(path);
     const result = await this.bridge.readFile(normalized);
     if (new Blob([result.content]).size > MAX_FILE_SIZE) {
-      throw new Error('文件超过 10 MB，暂不支持在编辑器中打开。');
+      throw new Error('Files larger than 10 MB are not supported in the editor yet.');
     }
     return result;
   }
@@ -112,7 +112,9 @@ export class DesktopWorkspaceService implements WorkspaceServiceContract {
     const from = normalizePath(oldPath);
     const to = normalizePath(newPath);
     if (from === to) return;
-    if (await this.entryExists(to)) throw new Error('目标位置已存在同名文件或文件夹。');
+    if (await this.entryExists(to)) {
+      throw new Error('A file or folder with that name already exists at the destination.');
+    }
     await this.bridge.renameEntry(from, to);
     this.revokeAssetUrl(from);
   }

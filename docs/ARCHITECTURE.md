@@ -715,7 +715,7 @@ Environment: macOS, Chrome headless (desktop size 1440×900), local production p
 
 ### 14.2 Test Coverage
 
-Currently **93 tests**:
+Currently **96 tests**:
 
 - Workspace store: stable ids, derived dirty, dirty collection before switching, de-duplication of concurrent opens, invalid paths becoming offline drafts, skipping updates when the scan signature is unchanged.
 - Workspace actions: flush ordering before switching, aborting a switch on write failure, rejecting switches when not connected, saving by id, resolving image paths by the originating document, routing image files to the viewer.
@@ -742,7 +742,7 @@ Currently **93 tests**:
 npm ci (skip the Electron binary download) → lint → typecheck → test → build
 ```
 
-CI covers the Web build and the 93 tests; desktop installers are produced on a macOS build machine via `npm run desktop:package` (macOS) or `npm run dist:win` (Windows).
+CI covers the Web build and the 96 tests; desktop installers are produced on a macOS build machine via `npm run desktop:package` (macOS) or `npm run dist:win` (Windows).
 
 ### 14.4 Manual Acceptance
 

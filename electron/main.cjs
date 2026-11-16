@@ -68,8 +68,9 @@ function scheduleWorkspaceChanged() {
 }
 
 /**
- * 原生文件监听只负责“通知”，具体扫描仍由渲染层统一执行（与 Web 轮询共用一条路径）。
- * 递归监听在部分平台不可用，失败时静默退回 5 秒轮询。
+ * The native watcher only sends notifications; the renderer still performs the actual scan
+ * (sharing one code path with web polling).
+ * Recursive watching is unavailable on some platforms; silently fall back to 5-second polling.
  */
 function startWorkspaceWatcher(instance) {
   stopWorkspaceWatcher();
@@ -105,7 +106,8 @@ function assertString(value, label) {
 }
 
 /**
- * 只接受来自主窗口主 frame 的 IPC，避免被嵌入的 iframe 或其它 webContents 调用。
+ * Accept IPC only from the main window's main frame, so embedded iframes and other
+ * webContents cannot call it.
  */
 function isTrustedSender(event) {
   if (!mainWindow || event.sender !== mainWindow.webContents) return false;
@@ -146,7 +148,7 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  // 默认拒绝一切导航；只有显式标记为外部链接的 http(s) 交给系统浏览器。
+  // Deny all navigation by default; only explicitly external http(s) links go to the system browser.
   mainWindow.webContents.on('will-navigate', (event, url) => {
     if (mainWindow && url === mainWindow.webContents.getURL()) return;
     event.preventDefault();
@@ -167,8 +169,8 @@ function createWindow() {
 function registerIpcHandlers() {
   handle('workspace:choose', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
-      title: '打开 Markdown 工作区',
-      buttonLabel: '打开工作区',
+      title: 'Open Markdown Workspace',
+      buttonLabel: 'Open Workspace',
       properties: ['openDirectory', 'createDirectory'],
     });
     if (result.canceled || !result.filePaths[0]) return null;
@@ -251,10 +253,10 @@ function installMenu() {
   const template = [
     ...(isMac ? [{ role: 'appMenu' }] : []),
     {
-      label: '文件',
+      label: 'File',
       submenu: [
         {
-          label: '打开文件夹…',
+          label: 'Open Folder…',
           accelerator: 'CmdOrCtrl+O',
           click: () => mainWindow?.webContents.send('menu:open-folder'),
         },
@@ -265,7 +267,7 @@ function installMenu() {
     },
     { role: 'editMenu' },
     {
-      label: '显示',
+      label: 'View',
       submenu: [
         { role: 'toggleDevTools', visible: !app.isPackaged },
         { type: 'separator', visible: !app.isPackaged },
@@ -295,14 +297,14 @@ function installDownloadHandler() {
     try {
       item.pause();
     } catch {
-      // 已经结束的下载直接忽略。
+      // Ignore a download that has already finished.
       return;
     }
     void dialog
       .showSaveDialog(mainWindow, {
-        title: '保存导出文件',
+        title: 'Save Export',
         defaultPath: path.join(app.getPath('downloads'), item.getFilename()),
-        buttonLabel: '保存',
+        buttonLabel: 'Save',
       })
       .then((result) => {
         if (result.canceled || !result.filePath) {

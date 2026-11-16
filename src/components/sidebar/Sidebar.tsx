@@ -55,8 +55,8 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
     (entryKind: 'file' | 'directory', parentPath: string, parentLabel: string) => {
       if (!connected) {
         pushToast({
-          title: '示例工作区为只读',
-          description: '打开本地文件夹后即可创建和编辑文件。',
+          title: 'Sample workspace is read-only',
+          description: 'Open a local folder to create and edit files.',
           tone: 'default',
           durationMs: 3200,
         });
@@ -81,7 +81,7 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
     (node: TreeNode, target: Parameters<typeof moveEntry>[1]) => {
       void moveEntry(node, target).catch((error: unknown) => {
         pushToast({
-          title: '移动失败',
+          title: 'Move failed',
           description: error instanceof Error ? error.message : undefined,
           tone: 'error',
         });
@@ -115,7 +115,7 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
         collapsed && 'is-collapsed',
         mobileOpen && 'is-mobile-open',
       )}
-      aria-label="工作区侧边栏"
+      aria-label="Workspace sidebar"
     >
       <div className="sidebar-top">
         <div className="workspace-identity">
@@ -126,13 +126,13 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
             <strong title={workspace.name}>{workspace.name}</strong>
             <span>
               {connected
-                ? `${workspace.fileCount} 个 Markdown 文件`
-                : '示例工作区 · 本地只读'}
+                ? `${workspace.fileCount} Markdown ${workspace.fileCount === 1 ? 'file' : 'files'}`
+                : 'Local read-only'}
             </span>
           </div>
           <IconButton
-            label="刷新工作区"
-            tip="刷新工作区"
+            label="Refresh workspace"
+            tip="Refresh workspace"
             size="sm"
             disabled={!connected || busy}
             onClick={() => void refreshWorkspace()}
@@ -140,8 +140,8 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
             <RefreshCw size={14} className={busy ? 'spin' : undefined} />
           </IconButton>
           <IconButton
-            label="关闭侧边栏"
-            tip="关闭侧边栏"
+            label="Close sidebar"
+            tip="Close sidebar"
             size="sm"
             className="sidebar-mobile-close"
             onClick={onCloseMobile}
@@ -158,12 +158,12 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
             onClick={() => requestNewEntry('file', '', workspace.name)}
           >
             <FilePlus2 size={15} />
-            <span>新建文件</span>
+            <span>New file</span>
             <kbd>{shiftModShortcut('N')}</kbd>
           </button>
           <IconButton
-            label="新建文件夹"
-            tip="新建文件夹"
+            label="New folder"
+            tip="New folder"
             size="sm"
             disabled={!connected}
             onClick={() => requestNewEntry('directory', '', workspace.name)}
@@ -176,11 +176,11 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
           <div className="sidebar-notice">
             <ShieldAlert size={15} />
             <div>
-              <strong>需要重新授权</strong>
+              <strong>Permission needed</strong>
               <span>{pendingWorkspaceName}</span>
             </div>
             <button type="button" className="small-button" onClick={() => void reconnectWorkspace()}>
-              连接
+              Connect
             </button>
           </div>
         ) : null}
@@ -188,12 +188,12 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
         {!connected ? (
           <button type="button" className="open-workspace-button" onClick={() => void openFolder()}>
             <FolderOpen size={15} />
-            打开本地文件夹
+            Open local folder
           </button>
         ) : null}
       </div>
 
-      <div className="sidebar-tabs" role="tablist" aria-label="侧边栏面板">
+      <div className="sidebar-tabs" role="tablist" aria-label="Sidebar panels">
         <button
           type="button"
           role="tab"
@@ -201,7 +201,7 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
           className={cn('sidebar-tab', sidebarTab === 'files' && 'is-active')}
           onClick={() => setSidebarTab('files')}
         >
-          文件
+          Files
         </button>
         <button
           type="button"
@@ -211,14 +211,14 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
           onClick={() => setSidebarTab('search')}
         >
           <Search size={13} />
-          搜索
+          Search
         </button>
       </div>
 
       <div className="sidebar-content">
         <section className="sidebar-pane" hidden={sidebarTab !== 'files'}>
           <div className="file-pane-heading">
-            <span>工作区文件</span>
+            <span>Workspace files</span>
             <span className="file-pane-count">{connected ? workspace.fileCount : 'DEMO'}</span>
           </div>
           <FileTree
@@ -236,7 +236,7 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
           {busy ? (
             <div className="sidebar-loading" role="status">
               <Loader2 size={14} className="spin" />
-              正在读取文件夹…
+              Reading folder…
             </div>
           ) : null}
         </section>
@@ -247,7 +247,7 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile }: SidebarProps) 
 
       <div className="sidebar-footer">
         <span className={cn('status-indicator', connected && 'is-connected')} />
-        {connected ? '本地文件 · 自动同步' : '数据仅保存在当前浏览器'}
+        {connected ? 'Local files · Auto-sync' : 'Data stays in this browser'}
       </div>
     </aside>
   );

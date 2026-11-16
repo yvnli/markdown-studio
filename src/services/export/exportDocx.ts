@@ -62,7 +62,7 @@ export async function createDocxExport(request: ExportRequest): Promise<ExportRe
 
   if (options.includeToc) {
     children.push(
-      new TableOfContents('目录', {
+      new TableOfContents('Table of contents', {
         hyperlink: true,
         headingStyleRange: '1-3',
       }),
@@ -363,7 +363,7 @@ function inlineToRuns(nodes: PhrasingContent[], style: InlineStyle = {}): TextRu
         break;
       }
       case 'image':
-        runs.push(new TextRun({ text: `[图片：${node.alt ?? ''}]`, color: '86868B' }));
+        runs.push(new TextRun({ text: `[Image: ${node.alt ?? ''}]`, color: '86868B' }));
         break;
       default:
         break;

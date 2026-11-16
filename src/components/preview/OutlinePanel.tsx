@@ -22,13 +22,13 @@ export function OutlinePanel({ open, items, onClose, onSelect }: OutlinePanelPro
   if (!open) return null;
 
   return (
-    <div className="outline-panel" aria-label="文档大纲">
+    <div className="outline-panel" aria-label="Document outline">
       <div className="outline-header">
         <span>
           <ListTree size={14} />
-          文档大纲
+          Document outline
         </span>
-        <button type="button" className="icon-button icon-button-sm" onClick={onClose} aria-label="关闭大纲">
+        <button type="button" className="icon-button icon-button-sm" onClick={onClose} aria-label="Close outline">
           <X size={13} />
         </button>
       </div>
@@ -46,7 +46,7 @@ export function OutlinePanel({ open, items, onClose, onSelect }: OutlinePanelPro
             </button>
           ))
         ) : (
-          <p className="outline-empty">文档中还没有标题</p>
+          <p className="outline-empty">No headings in this document yet</p>
         )}
       </nav>
     </div>

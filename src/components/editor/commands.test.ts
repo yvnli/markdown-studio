@@ -3,23 +3,23 @@ import { transformHeadingLines, transformLinePrefix } from './commands';
 
 describe('transformHeadingLines', () => {
   it('adds and removes heading markers without losing indentation', () => {
-    expect(transformHeadingLines(['标题'], 2)).toEqual(['## 标题']);
-    expect(transformHeadingLines(['  ## 标题'], 2)).toEqual(['  标题']);
-    expect(transformHeadingLines(['# 标题', '正文'], 3)).toEqual(['### 标题', '### 正文']);
+    expect(transformHeadingLines(['Heading'], 2)).toEqual(['## Heading']);
+    expect(transformHeadingLines(['  ## Heading'], 2)).toEqual(['  Heading']);
+    expect(transformHeadingLines(['# Heading', 'Body'], 3)).toEqual(['### Heading', '### Body']);
   });
 });
 
 describe('transformLinePrefix', () => {
   it('creates and toggles unordered lists', () => {
-    expect(transformLinePrefix(['第一项', '第二项'], 'ul')).toEqual(['- 第一项', '- 第二项']);
-    expect(transformLinePrefix(['- 第一项', '- 第二项'], 'ul')).toEqual(['第一项', '第二项']);
+    expect(transformLinePrefix(['First item', 'Second item'], 'ul')).toEqual(['- First item', '- Second item']);
+    expect(transformLinePrefix(['- First item', '- Second item'], 'ul')).toEqual(['First item', 'Second item']);
   });
 
   it('numbers ordered list items', () => {
-    expect(transformLinePrefix(['第一项', '第二项'], 'ol')).toEqual(['1. 第一项', '2. 第二项']);
+    expect(transformLinePrefix(['First item', 'Second item'], 'ol')).toEqual(['1. First item', '2. Second item']);
   });
 
   it('creates task lists', () => {
-    expect(transformLinePrefix(['待办'], 'task')).toEqual(['- [ ] 待办']);
+    expect(transformLinePrefix(['To do'], 'task')).toEqual(['- [ ] To do']);
   });
 });

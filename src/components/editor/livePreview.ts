@@ -59,8 +59,9 @@ const collectActiveLines = (view: EditorView): Set<number> => {
 };
 
 /**
- * 计算需要重建装饰的文本窗口：视口 + 选区所在行。
- * 只遍历这个窗口，避免长文档在每次光标移动时重建整篇语法树的装饰。
+ * Compute the text window whose decorations need rebuilding: the viewport plus the
+ * lines containing the selection. Walking only this window keeps long documents from
+ * rebuilding the whole syntax tree on every cursor move.
  */
 function decorationWindow(view: EditorView): { from: number; to: number } | null {
   const state = view.state;

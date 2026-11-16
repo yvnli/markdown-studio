@@ -16,13 +16,13 @@ export function PreviewZoomControls({ zoom, onChange }: PreviewZoomControlsProps
   const normalized = normalizePreviewZoom(zoom);
   const percent = formatZoomPercent(normalized);
   return (
-    <div className="preview-zoom" role="group" aria-label="预览缩放">
+    <div className="preview-zoom" role="group" aria-label="Preview zoom">
       <button
         type="button"
         className="pane-tool preview-zoom-button"
-        aria-label="缩小预览"
-        title="缩小预览"
-        data-tip="缩小预览"
+        aria-label="Zoom out"
+        title="Zoom out"
+        data-tip="Zoom out"
         disabled={!canPreviewZoomOut(normalized)}
         onClick={() => onChange(stepPreviewZoom(normalized, -1))}
       >
@@ -31,9 +31,9 @@ export function PreviewZoomControls({ zoom, onChange }: PreviewZoomControlsProps
       <button
         type="button"
         className="preview-zoom-value"
-        aria-label={`预览缩放 ${percent}，点击重置为 100%`}
-        title="重置为 100%"
-        data-tip="重置为 100%"
+        aria-label={`Preview zoom ${percent}. Click to reset to 100%.`}
+        title="Reset to 100%"
+        data-tip="Reset to 100%"
         onClick={() => onChange(1)}
       >
         {percent}
@@ -41,9 +41,9 @@ export function PreviewZoomControls({ zoom, onChange }: PreviewZoomControlsProps
       <button
         type="button"
         className="pane-tool preview-zoom-button"
-        aria-label="放大预览"
-        title="放大预览"
-        data-tip="放大预览"
+        aria-label="Zoom in"
+        title="Zoom in"
+        data-tip="Zoom in"
         disabled={!canPreviewZoomIn(normalized)}
         onClick={() => onChange(stepPreviewZoom(normalized, 1))}
       >

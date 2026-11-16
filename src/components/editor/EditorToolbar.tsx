@@ -40,29 +40,29 @@ interface ToolDefinition {
 
 const groups: ToolDefinition[][] = [
   [
-    { action: 'h1', label: '一级标题', tip: '一级标题', text: 'H1' },
-    { action: 'h2', label: '二级标题', tip: '二级标题', text: 'H2' },
-    { action: 'h3', label: '三级标题', tip: '三级标题', text: 'H3' },
+    { action: 'h1', label: 'Heading 1', tip: 'Heading 1', text: 'H1' },
+    { action: 'h2', label: 'Heading 2', tip: 'Heading 2', text: 'H2' },
+    { action: 'h3', label: 'Heading 3', tip: 'Heading 3', text: 'H3' },
   ],
   [
-    { action: 'bold', label: '加粗', tip: '加粗', icon: <Bold size={16} />, shortcut: modShortcut('B') },
-    { action: 'italic', label: '斜体', tip: '斜体', icon: <Italic size={16} />, shortcut: modShortcut('I') },
-    { action: 'strike', label: '删除线', tip: '删除线', icon: <Strikethrough size={16} /> },
-    { action: 'code', label: '代码', tip: '行内代码 / 代码块', icon: <Code2 size={16} /> },
+    { action: 'bold', label: 'Bold', tip: 'Bold', icon: <Bold size={16} />, shortcut: modShortcut('B') },
+    { action: 'italic', label: 'Italic', tip: 'Italic', icon: <Italic size={16} />, shortcut: modShortcut('I') },
+    { action: 'strike', label: 'Strikethrough', tip: 'Strikethrough', icon: <Strikethrough size={16} /> },
+    { action: 'code', label: 'Code', tip: 'Inline code / code block', icon: <Code2 size={16} /> },
   ],
   [
-    { action: 'quote', label: '引用', tip: '引用', icon: <Quote size={16} /> },
-    { action: 'ul', label: '无序列表', tip: '无序列表', icon: <List size={16} /> },
-    { action: 'ol', label: '有序列表', tip: '有序列表', icon: <ListOrdered size={16} /> },
-    { action: 'task', label: '任务列表', tip: '任务列表', icon: <ListTodo size={16} /> },
+    { action: 'quote', label: 'Quote', tip: 'Quote', icon: <Quote size={16} /> },
+    { action: 'ul', label: 'Bullet list', tip: 'Bullet list', icon: <List size={16} /> },
+    { action: 'ol', label: 'Numbered list', tip: 'Numbered list', icon: <ListOrdered size={16} /> },
+    { action: 'task', label: 'Task list', tip: 'Task list', icon: <ListTodo size={16} /> },
   ],
   [
-    { action: 'link', label: '链接', tip: '插入链接', icon: <Link2 size={16} />, shortcut: modShortcut('K') },
-    { action: 'image', label: '图片', tip: '插入图片', icon: <ImagePlus size={16} /> },
-    { action: 'table', label: '表格', tip: '插入表格', icon: <Table2 size={16} /> },
-    { action: 'hr', label: '分割线', tip: '插入分割线', icon: <Minus size={16} /> },
-    { action: 'math', label: '公式', tip: '插入 LaTeX 公式', icon: <Sigma size={16} /> },
-    { action: 'mermaid', label: '图表', tip: '插入 Mermaid 图表', icon: <Workflow size={16} /> },
+    { action: 'link', label: 'Link', tip: 'Insert link', icon: <Link2 size={16} />, shortcut: modShortcut('K') },
+    { action: 'image', label: 'Image', tip: 'Insert image', icon: <ImagePlus size={16} /> },
+    { action: 'table', label: 'Table', tip: 'Insert table', icon: <Table2 size={16} /> },
+    { action: 'hr', label: 'Divider', tip: 'Insert divider', icon: <Minus size={16} /> },
+    { action: 'math', label: 'Math', tip: 'Insert LaTeX formula', icon: <Sigma size={16} /> },
+    { action: 'mermaid', label: 'Diagram', tip: 'Insert Mermaid diagram', icon: <Workflow size={16} /> },
   ],
 ];
 
@@ -116,8 +116,8 @@ export function EditorToolbar({ editorView, hasDocument, onOpenFind }: EditorToo
 
       <div className="toolbar-trailing">
         <IconButton
-          label="在文件中查找"
-          tip={`在文件中查找 · ${modShortcut('F')}`}
+          label="Find in file"
+          tip={`Find in file · ${modShortcut('F')}`}
           size="sm"
           disabled={!hasDocument}
           onClick={onOpenFind}
@@ -126,17 +126,17 @@ export function EditorToolbar({ editorView, hasDocument, onOpenFind }: EditorToo
         </IconButton>
         <span className="toolbar-live-hint" aria-hidden="true">
           <span className="live-dot" />
-          语法自动淡化
+          Syntax dimming
         </span>
         <SegmentedControl<ViewMode>
-          label="切换视图"
+          label="Switch view"
           compact
           value={viewMode}
           onChange={setViewMode}
           options={[
-            { value: 'write', label: '写作', icon: <PenLine size={14} /> },
-            { value: 'split', label: '分屏', icon: <Columns2 size={14} /> },
-            { value: 'preview', label: '预览', icon: <Eye size={14} /> },
+            { value: 'write', label: 'Write', icon: <PenLine size={14} /> },
+            { value: 'split', label: 'Split', icon: <Columns2 size={14} /> },
+            { value: 'preview', label: 'Preview', icon: <Eye size={14} /> },
           ]}
         />
       </div>

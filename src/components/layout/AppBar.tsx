@@ -34,8 +34,8 @@ export function AppBar({
     <header className="app-bar">
       <div className="app-bar-leading">
         <IconButton
-          label={sidebarOpen ? '收起侧边栏' : '展开侧边栏'}
-          tip={sidebarOpen ? '收起侧边栏' : '展开侧边栏'}
+          label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          tip={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           active={sidebarOpen}
           onClick={onToggleSidebar}
         >
@@ -54,32 +54,32 @@ export function AppBar({
         <span className={cn('document-heading-title', !hasDocument && 'is-placeholder')}>
           {hasDocument ? title : 'Markdown studio'}
         </span>
-        {dirty ? <span className="dirty-dot" aria-label="有未保存的更改" /> : null}
+        {dirty ? <span className="dirty-dot" aria-label="Unsaved changes" /> : null}
       </div>
 
       <div className="app-bar-actions">
-        <IconButton label="全局搜索" tip={`全局搜索 · ${shiftModShortcut('F')}`} onClick={onOpenSearch}>
+        <IconButton label="Search workspace" tip={`Search workspace · ${shiftModShortcut('F')}`} onClick={onOpenSearch}>
           <Search size={17} />
         </IconButton>
-        <button className="text-button app-action-label" type="button" onClick={onOpenFolder} data-tip="打开本地文件夹" title="打开本地文件夹">
+        <button className="text-button app-action-label" type="button" onClick={onOpenFolder} data-tip="Open local folder" title="Open local folder">
           <FolderOpen size={16} />
-          <span>打开文件夹</span>
+          <span>Open folder</span>
         </button>
         <button
           className="primary-button"
           type="button"
           onClick={onExport}
           disabled={!hasDocument}
-          data-tip="导出文档"
-          title="导出文档"
+          data-tip="Export document"
+          title="Export document"
         >
           <Download size={15} />
-          <span>导出</span>
+          <span>Export</span>
         </button>
-        <IconButton label={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'} onClick={onToggleTheme}>
+        <IconButton label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} onClick={onToggleTheme}>
           {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
         </IconButton>
-        <IconButton label="设置" onClick={onOpenSettings}>
+        <IconButton label="Settings" onClick={onOpenSettings}>
           <Settings2 size={17} />
         </IconButton>
       </div>

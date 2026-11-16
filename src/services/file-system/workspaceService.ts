@@ -44,7 +44,7 @@ function permissionHandle(handle: FileSystemHandle): PermissionCapableFileSystem
 function sortNodes(nodes: TreeNode[]): TreeNode[] {
   return nodes.sort((a, b) => {
     if (a.kind !== b.kind) return a.kind === 'directory' ? -1 : 1;
-    return a.name.localeCompare(b.name, 'zh-CN', { numeric: true, sensitivity: 'base' });
+    return a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' });
   });
 }
 
@@ -82,11 +82,13 @@ export class WorkspaceService {
 
   async openDirectory(): Promise<WorkspaceSnapshot> {
     if (!this.isSupported) {
-      throw new Error('当前浏览器不支持本地文件夹访问，请使用最新版 Chrome、Edge 或 Chromium。');
+      throw new Error(
+        'This browser does not support local folder access. Use the latest Chrome, Edge, or Chromium.',
+      );
     }
     const handle = await window.showDirectoryPicker!({ id: 'markdown-studio', mode: 'readwrite' });
     const hasPermission = await this.ensurePermission(handle, 'readwrite');
-    if (!hasPermission) throw new Error('未获得文件夹读写权限。');
+    if (!hasPermission) throw new Error('Folder read/write permission was not granted.');
     try {
       await set(HANDLE_KEY, handle);
     } catch {
@@ -120,14 +122,14 @@ export class WorkspaceService {
   async reconnectLastWorkspace(): Promise<WorkspaceSnapshot | null> {
     if (!this.pendingHandle) return null;
     const granted = await this.ensurePermission(this.pendingHandle, 'readwrite');
-    if (!granted) throw new Error('未获得工作区访问权限。');
+    if (!granted) throw new Error('Workspace access permission was not granted.');
     this.connect(this.pendingHandle);
     this.pendingHandle = null;
     return this.scan();
   }
 
   async scan(): Promise<WorkspaceSnapshot> {
-    if (!this.root) throw new Error('尚未打开工作区。');
+    if (!this.root) throw new Error('No workspace is open.');
     const tree: TreeNode[] = [];
     const counters = { files: 0, markdownFiles: 0 };
 
@@ -179,7 +181,7 @@ export class WorkspaceService {
     const handle = await this.getFileHandle(normalized, false);
     const file = await handle.getFile();
     if (file.size > MAX_FILE_SIZE) {
-      throw new Error('文件超过 10 MB，暂不支持在编辑器中打开。');
+      throw new Error('Files larger than 10 MB are not supported in the editor yet.');
     }
     const content = await file.text();
     this.contentCache.set(normalized, { lastModified: file.lastModified, content });
@@ -203,7 +205,7 @@ export class WorkspaceService {
 
   async createFile(path: string, content = ''): Promise<void> {
     const normalized = normalizePath(path);
-    if (!normalized) throw new Error('文件名不能为空。');
+    if (!normalized) throw new Error('File name cannot be empty.');
     await this.writeTextFile(normalized, content);
   }
 
@@ -226,7 +228,9 @@ export class WorkspaceService {
     const from = normalizePath(oldPath);
     const to = normalizePath(newPath);
     if (from === to) return;
-    if (await this.entryExistsInternal(to)) throw new Error('目标位置已存在同名文件或文件夹。');
+    if (await this.entryExistsInternal(to)) {
+      throw new Error('A file or folder with that name already exists at the destination.');
+    }
 
     const source = await this.getHandle(from);
     if (source.kind === 'file') {
@@ -254,7 +258,7 @@ export class WorkspaceService {
     preferredDirectory: string,
     mimeType = 'image/png',
   ): Promise<{ assetPath: string; relativePath: string; objectUrl: string }> {
-    if (!this.root) throw new Error('请先打开一个本地文件夹，再粘贴图片。');
+    if (!this.root) throw new Error('Open a local folder before pasting an image.');
     const directory = sanitizeAssetDirectory(preferredDirectory);
     const extension = imageExtensionForMime(mimeType);
     const filename = `image_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${extension}`;
@@ -380,7 +384,7 @@ export class WorkspaceService {
     path: string,
     create: boolean,
   ): Promise<FileSystemDirectoryHandle> {
-    if (!this.root) throw new Error('尚未打开工作区。');
+    if (!this.root) throw new Error('No workspace is open.');
     const normalized = normalizePath(path);
     if (!normalized) return this.root;
     const parts = normalized.split('/').filter(Boolean);
@@ -395,7 +399,7 @@ export class WorkspaceService {
     const normalized = normalizePath(path);
     const parts = normalized.split('/');
     const filename = parts.pop();
-    if (!filename) throw new Error('文件路径无效。');
+    if (!filename) throw new Error('Invalid file path.');
     const directory = await this.getDirectoryHandle(parts.join('/'), create);
     return directory.getFileHandle(filename, { create });
   }
@@ -404,12 +408,12 @@ export class WorkspaceService {
     const normalized = normalizePath(path);
     const parts = normalized.split('/');
     const name = parts.pop();
-    if (!name) throw new Error('路径无效。');
+    if (!name) throw new Error('Invalid path.');
     const parent = await this.getDirectoryHandle(parts.join('/'), false);
     for await (const entry of parent.values()) {
       if (entry.name === name) return entry;
     }
-    throw new Error(`找不到 ${normalized}`);
+    throw new Error(`Not found: ${normalized}`);
   }
 
   private async entryExistsInternal(path: string): Promise<boolean> {

@@ -21,11 +21,11 @@ export function CloseDocumentDialog({ documentId, title, onClose }: CloseDocumen
     setError(null);
     try {
       const saved = await saveDocument(documentId);
-      if (!saved) throw new Error('保存失败，文档仍未关闭。');
+      if (!saved) throw new Error('Save failed. The document is still open.');
       closeDocument(documentId);
       onClose();
     } catch (closeError) {
-      setError(closeError instanceof Error ? closeError.message : '保存失败。');
+      setError(closeError instanceof Error ? closeError.message : 'Save failed.');
     } finally {
       setBusy(false);
     }
@@ -33,14 +33,14 @@ export function CloseDocumentDialog({ documentId, title, onClose }: CloseDocumen
 
   return (
     <Modal
-      title="关闭未保存的文档？"
-      description="你仍然可以取消，并回到编辑器中继续写作。"
+      title="Close unsaved document?"
+      description="You can still cancel and keep writing."
       onClose={onClose}
       hideClose={busy}
       footer={
         <>
           <button type="button" className="secondary-button" onClick={onClose} disabled={busy}>
-            取消
+            Cancel
           </button>
           <button
             type="button"
@@ -51,17 +51,17 @@ export function CloseDocumentDialog({ documentId, title, onClose }: CloseDocumen
               onClose();
             }}
           >
-            不保存并关闭
+            Don't save and close
           </button>
           <button type="button" className="primary-button" onClick={() => void saveAndClose()} disabled={busy}>
             {busy ? <Loader2 size={14} className="spin" /> : null}
-            保存并关闭
+            Save and close
           </button>
         </>
       }
     >
       <p className="dialog-danger-copy">
-        <strong>{title}</strong> 含有尚未保存到文件的更改。
+        <strong>{title}</strong> has changes that haven't been saved to a file.
       </p>
       {error ? <div className="form-error" role="alert">{error}</div> : null}
     </Modal>

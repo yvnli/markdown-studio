@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# 从 release/mac-arm64/Markdown studio.app 生成可分发的 DMG。
-# 先写入临时文件，成功后才替换旧 DMG：失败不会毁掉已有产物。
+# Build a distributable DMG from release/mac-arm64/Markdown studio.app.
+# Write to a temporary file first and replace the old DMG only on success, so a failure
+# never destroys existing artifacts.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -43,22 +44,24 @@ run_with_timeout() {
 
 rm -f "$TMP"
 status=0
-# -nospotlight：不给临时卷建 Spotlight 索引，避免每轮打包都触发全盘索引
+# -nospotlight: skip Spotlight indexing on the temporary volume, so every build doesn't
+# trigger a full-disk index
 run_with_timeout "$TIMEOUT_SECONDS" \
   hdiutil create -volname "Markdown studio" -srcfolder "$STAGE" \
   -format UDZO -nospotlight "$TMP" || status=$?
 
 if (( status != 0 )); then
-  echo "hdiutil create 失败（退出码 ${status}）" >&2
+  echo "hdiutil create failed (exit code ${status})" >&2
   if (( status == 124 )); then
-    echo "已超过 ${TIMEOUT_SECONDS}s 仍未完成，判定为卡住并终止；可用 DMG_TIMEOUT=600 放宽。" >&2
+    echo "Timed out after ${TIMEOUT_SECONDS}s; treating the build as stuck and aborting. Use DMG_TIMEOUT=600 to allow more time." >&2
   fi
   cat >&2 <<'HINT'
-常见原因：
-  1. 在受限沙箱/受管终端里运行：hdiutil 需要在 /Volumes 下创建挂载点，被拦截时会直接失败；
-     请改用系统「终端」执行 npm run dist:mac。
-  2. 同名卷仍被挂载：hdiutil unmount "/Volumes/Markdown studio" 后重试。
-  3. 磁盘空间不足（DMG 需要约 300MB 临时空间）。
+Common causes:
+  1. Running in a restricted sandbox or managed terminal: hdiutil needs to create a mount
+     point under /Volumes and fails immediately when that is blocked.
+     Run npm run dist:mac from the system Terminal instead.
+  2. A volume with the same name is still mounted: run hdiutil unmount "/Volumes/Markdown studio" and retry.
+  3. Not enough disk space (the DMG needs about 300 MB of temporary space).
 HINT
   exit 1
 fi
@@ -66,7 +69,7 @@ fi
 status=0
 run_with_timeout 120 hdiutil verify "$TMP" >/dev/null || status=$?
 if (( status != 0 )); then
-  echo "DMG 校验失败（退出码 ${status}）" >&2
+  echo "DMG verification failed (exit code ${status})" >&2
   exit 1
 fi
 

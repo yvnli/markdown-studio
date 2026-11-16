@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
- * 图片预览：只覆盖 Markdown 预览面板的内容区，不占满整个应用窗口
+ * Image preview: covers only the Markdown preview content area, not the whole window
  * ------------------------------------------------------------------ */
 
 .image-preview-pane {
@@ -104,7 +104,7 @@
   display: block;
   max-width: none;
   border-radius: 6px;
-  /* 透明图片用低对比棋盘格表示透明区域。 */
+  /* A low-contrast checkerboard marks transparent areas in transparent images. */
   background-color: var(--surface);
   background-image:
     linear-gradient(45deg, var(--line-faint) 25%, transparent 25%, transparent 75%, var(--line-faint) 75%),
@@ -284,7 +284,7 @@
 }
 
 /* ------------------------------------------------------------------
- * 插入图片对话框：按路径给出提示与候选
+ * Insert image dialog: path hints and candidates
  * ------------------------------------------------------------------ */
 
 .image-path-hint {

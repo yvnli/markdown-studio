@@ -39,7 +39,7 @@ export function searchFiles(options: SearchOptions): SearchCoreResult {
       total: 0,
       truncated: false,
       durationMs: performance.now() - started,
-      error: error instanceof Error ? error.message : '正则表达式无效。',
+      error: error instanceof Error ? error.message : 'Invalid regular expression.',
     };
   }
 

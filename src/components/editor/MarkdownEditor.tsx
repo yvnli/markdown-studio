@@ -97,7 +97,7 @@ export function MarkdownEditor({
         EditorState.allowMultipleSelections.of(true),
         EditorView.lineWrapping,
         EditorView.contentAttributes.of({
-          'aria-label': 'Markdown 编辑区',
+          'aria-label': 'Markdown editor',
           spellcheck: 'false',
           autocapitalize: 'off',
           autocorrect: 'off',
@@ -110,7 +110,7 @@ export function MarkdownEditor({
         markdownEditorTheme,
         livePreviewExtension,
         searchHighlightExtension,
-        placeholder('从一个句子开始……'),
+        placeholder('Start with a sentence…'),
         scrollPastEnd(),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {

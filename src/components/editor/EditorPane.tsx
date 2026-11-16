@@ -21,7 +21,7 @@ export function EditorPane({
   onScrollRatio,
   onPasteImage,
 }: EditorPaneProps) {
-  // 只订阅当前文档：其它文档的内容变化不会触发本组件重渲染。
+  // Subscribe only to the current document, so edits elsewhere do not re-render this pane.
   const document = useWorkspaceStore(
     (state) => state.documents.find((item) => item.id === documentId) ?? null,
   );
@@ -97,14 +97,14 @@ export function EditorPane({
   if (!document) return null;
 
   return (
-    <section className="editor-pane" aria-label="Markdown 编辑区">
+    <section className="editor-pane" aria-label="Markdown editor">
       <div className="pane-header">
         <span className="pane-label">
           <span className="pane-dot editor-dot" />
           EDITOR
         </span>
         <span className="pane-meta">
-          行 {document.cursorLine}，列 {document.cursorColumn}
+          Line {document.cursorLine}, column {document.cursorColumn}
         </span>
       </div>
       <div className="editor-canvas" style={{ '--editor-font-size': `${fontSize}px` } as React.CSSProperties}>

@@ -37,7 +37,7 @@ export function useDocumentActions(
           );
           useWorkspaceStore.getState().markDocumentSaved(documentToSave.id, lastModified);
           pushToast({
-            title: '已保存到磁盘',
+            title: 'Saved to disk',
             description: documentToSave.path,
             tone: 'success',
             durationMs: 2200,
@@ -53,16 +53,16 @@ export function useDocumentActions(
           pushToast({
             title:
               documentToSave.origin === 'workspace'
-                ? '工作区未连接，已下载副本'
-                : 'Markdown 文件已下载',
+                ? 'Workspace not connected. A copy was downloaded.'
+                : 'Markdown file downloaded',
             tone: 'success',
           });
         }
         return true;
       } catch (error) {
         pushToast({
-          title: '保存失败',
-          description: error instanceof Error ? error.message : '请检查文件权限。',
+          title: 'Save failed',
+          description: error instanceof Error ? error.message : 'Check the file permissions.',
           tone: 'error',
           durationMs: 4200,
         });
@@ -77,10 +77,10 @@ export function useDocumentActions(
       const state = useWorkspaceStore.getState();
       const node = findFileNode(state.treeIndex, normalizePath(path));
       if (!node) {
-        pushToast({ title: '找不到目标文件', description: path, tone: 'error' });
+        pushToast({ title: 'Target file not found', description: path, tone: 'error' });
         return false;
       }
-      // 图片在预览区查看，而不是创建文本标签页；写作视图下先展开分屏，保证预览区可见。
+      // Show images in the preview pane instead of opening a text tab. In Write view, expand to Split first so the preview stays visible.
       if (isImageFile(node.path)) {
         const preferences = usePreferencesStore.getState();
         if (preferences.viewMode === 'write') preferences.setViewMode('split');
@@ -97,7 +97,7 @@ export function useDocumentActions(
         return true;
       } catch (error) {
         pushToast({
-          title: '无法打开文件',
+          title: 'Could not open file',
           description: error instanceof Error ? error.message : undefined,
           tone: 'error',
         });
@@ -120,15 +120,15 @@ export function useDocumentActions(
             file.type,
           );
           pushToast({
-            title: '图片已保存并插入',
-            description: `${saved.assetPath} · 已写入 ${saved.relativePath}`,
+            title: 'Image saved and inserted',
+            description: `${saved.assetPath} · written to ${saved.relativePath}`,
             tone: 'success',
           });
           void refreshWorkspace({ silent: true });
-          return `![粘贴的图片](${saved.relativePath})`;
+          return `![Pasted image](${saved.relativePath})`;
         } catch (error) {
           pushToast({
-            title: '图片保存失败',
+            title: 'Could not save image',
             description: error instanceof Error ? error.message : undefined,
             tone: 'error',
             durationMs: 4200,
@@ -139,20 +139,20 @@ export function useDocumentActions(
 
       if (file.size > 4 * 1024 * 1024) {
         pushToast({
-          title: '图片太大',
-          description: '未连接工作区时，内嵌图片上限为 4 MB。',
+          title: 'Image too large',
+          description: 'Without a workspace, embedded images are limited to 4 MB.',
           tone: 'error',
         });
         return null;
       }
       const dataUrl = await readFileAsDataUrl(file);
       pushToast({
-        title: '图片已内嵌为 Data URL',
-        description: '打开本地文件夹后，粘贴图片会保存到 assets/。',
+        title: 'Image embedded as a data URL',
+        description: 'Open a local folder to save pasted images to assets/.',
         tone: 'default',
         durationMs: 3600,
       });
-      return `![粘贴的图片](${dataUrl})`;
+      return `![Pasted image](${dataUrl})`;
     },
     [imageDirectory, pushToast, refreshWorkspace],
   );

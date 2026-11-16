@@ -1,8 +1,8 @@
 const MARKDOWN_EXTENSIONS = new Set(['.md', '.markdown', '.mdown', '.mkd', '.txt']);
 
 /**
- * 浏览器（Chromium / Electron）可以解码的图片格式。
- * 这里是「文件树预览」与「图片路径提示」共用的唯一来源。
+ * Image formats the browser (Chromium / Electron) can decode.
+ * This is the single source shared by file tree previews and image path hints.
  */
 export const IMAGE_EXTENSIONS = new Set([
   '.png',
@@ -57,7 +57,7 @@ export function isImageFile(path: string): boolean {
   return IMAGE_EXTENSIONS.has(getExtension(path.split(/[?#]/)[0] ?? path));
 }
 
-/** decodeURIComponent 遇到孤立的 `%` 会抛错，路径提示不应因此中断。 */
+/** decodeURIComponent throws on a stray `%`, and a path hint shouldn't break because of it. */
 export function safeDecodePath(value: string): string {
   try {
     return decodeURIComponent(value);
@@ -67,10 +67,10 @@ export function safeDecodePath(value: string): string {
 }
 
 /**
- * 把图片/链接目标解析为工作区相对路径。
- * - 以 `/` 开头：相对工作区根目录；
- * - 其它：相对当前文档所在目录；
- * - 解析 `.` 与 `..`，且不会越出工作区根目录。
+ * Resolve an image or link target to a workspace-relative path.
+ * - Starting with `/`: relative to the workspace root;
+ * - Otherwise: relative to the current document folder;
+ * - Resolves `.` and `..` without escaping the workspace root.
  */
 export function resolvePathFrom(baseDirectory: string, target: string): string {
   const trimmed = String(target ?? '').trim();
@@ -109,6 +109,6 @@ export function relativePath(fromDirectory: string, toPath: string): string {
 
 export function ensureExtension(name: string, fallback = '.md'): string {
   const trimmed = name.trim();
-  if (!trimmed) return `未命名${fallback}`;
+  if (!trimmed) return `Untitled${fallback}`;
   return getExtension(trimmed) ? trimmed : `${trimmed}${fallback}`;
 }

@@ -15,8 +15,8 @@ export function findDocument(id: string): DocumentTab | null {
 }
 
 /**
- * 切换工作区前把当前工作区所有未保存文档写回磁盘。
- * 写入失败会抛出，调用方中止切换，避免"切换即丢稿"。
+ * Write every unsaved document in the current workspace back to disk before switching.
+ * Throws on failure so the caller can abort the switch and avoid losing drafts.
  */
 export async function persistDirtyWorkspaceDocuments(): Promise<number> {
   const dirty = useWorkspaceStore
@@ -25,7 +25,7 @@ export async function persistDirtyWorkspaceDocuments(): Promise<number> {
       (document) => document.origin === 'workspace' && document.path && isDocumentDirty(document),
     );
   if (dirty.length && !workspaceService.isConnected) {
-    throw new Error('工作区未连接，无法保存未保存的文档。请先重新连接工作区，或分别导出草稿。');
+    throw new Error("Workspace not connected, so unsaved documents can't be written. Reconnect the workspace first, or export the drafts individually.");
   }
   for (const document of dirty) {
     const lastModified = await workspaceService.writeTextFile(
@@ -58,7 +58,7 @@ export function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error ?? new Error('无法读取图片。'));
+    reader.onerror = () => reject(reader.error ?? new Error('Could not read image.'));
     reader.readAsDataURL(file);
   });
 }

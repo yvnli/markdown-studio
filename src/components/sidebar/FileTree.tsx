@@ -185,7 +185,7 @@ function FileTreeComponent({
                   renderNodes(node.children, depth + 1)
                 ) : (
                   <div className="file-tree-empty-folder" style={{ paddingLeft: `${30 + depth * 14}px` }}>
-                    空文件夹
+                    Empty folder
                   </div>
                 )}
               </div>
@@ -216,13 +216,13 @@ function FileTreeComponent({
           }}
           onContextMenu={(event) => {
             const parent = node.path.includes('/') ? node.path.slice(0, node.path.lastIndexOf('/')) : '';
-            const parentLabel = parent ? parent.split('/').at(-1) ?? parent : '工作区';
+            const parentLabel = parent ? parent.split('/').at(-1) ?? parent : 'Workspace';
             openContextMenu(event, node, parent, parentLabel);
           }}
         >
           <span className="file-tree-icon">{fileIcon(node)}</span>
           <span className="file-tree-name">{node.name}</span>
-          {dirtyPaths.has(node.path) ? <span className="file-tree-dirty" aria-label="未保存" /> : null}
+          {dirtyPaths.has(node.path) ? <span className="file-tree-dirty" aria-label="Unsaved" /> : null}
         </div>
       );
     });
@@ -231,15 +231,15 @@ function FileTreeComponent({
     <div
       className="file-tree"
       role="tree"
-      aria-label="工作区文件"
+      aria-label="Workspace files"
       onContextMenu={(event) => {
         if (event.target === event.currentTarget) {
-          openContextMenu(event, null, '', '工作区');
+          openContextMenu(event, null, '', 'Workspace');
         }
       }}
     >
       {nodes.length ? renderNodes(nodes, 0) : (
-        <p className="file-tree-placeholder">这个文件夹里还没有内容。</p>
+        <p className="file-tree-placeholder">This folder is empty.</p>
       )}
 
       {contextMenu
@@ -260,7 +260,7 @@ function FileTreeComponent({
                 }}
               >
                 <FilePlus2 size={14} />
-                新建 Markdown 文件
+                New Markdown file
               </button>
               <button
                 type="button"
@@ -272,7 +272,7 @@ function FileTreeComponent({
                 }}
               >
                 <FolderPlus size={14} />
-                新建文件夹
+                New folder
               </button>
               {contextMenu.node ? (
                 <>
@@ -287,7 +287,7 @@ function FileTreeComponent({
                     }}
                   >
                     <Pencil size={14} />
-                    重命名
+                    Rename
                   </button>
                   <button
                     type="button"
@@ -299,7 +299,7 @@ function FileTreeComponent({
                     }}
                   >
                     <Trash2 size={14} />
-                    删除
+                    Delete
                   </button>
                 </>
               ) : null}

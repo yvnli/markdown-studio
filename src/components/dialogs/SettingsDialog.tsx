@@ -22,25 +22,25 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal
-      title="设置"
-      description="外观与本地文件行为。所有设置都只保存在这台设备上。"
+      title="Settings"
+      description="Appearance and local file behavior. All settings stay on this device."
       onClose={onClose}
       size="md"
       footer={
         <>
-          <button type="button" className="secondary-button" onClick={onClose}>取消</button>
-          <button type="button" className="primary-button" onClick={save}>保存设置</button>
+          <button type="button" className="secondary-button" onClick={onClose}>Cancel</button>
+          <button type="button" className="primary-button" onClick={save}>Save settings</button>
         </>
       }
     >
       <section className="settings-section">
-        <h3>外观</h3>
-        <p>白色与深色模式都遵循同一套黑白视觉语言。</p>
+        <h3>Appearance</h3>
+        <p>Light and dark mode share the same black-and-white visual language.</p>
         <div className="settings-choice">
           {([
-            ['system', '跟随系统', Monitor],
-            ['light', '白色', Sun],
-            ['dark', '深色', Moon],
+            ['system', 'System', Monitor],
+            ['light', 'Light', Sun],
+            ['dark', 'Dark', Moon],
           ] as const).map(([value, label, Icon]) => (
             <button
               key={value}
@@ -56,11 +56,11 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
       </section>
 
       <section className="settings-section">
-        <h3>编辑</h3>
+        <h3>Editor</h3>
         <div className="settings-row">
           <div className="settings-row-copy">
-            <strong>编辑区字号</strong>
-            <span>改动会立即应用到当前文档</span>
+            <strong>Editor font size</strong>
+            <span>Changes apply immediately to the current document</span>
           </div>
           <label className="font-size-select">
             <Type size={13} />
@@ -73,25 +73,25 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
         </div>
         <div className="settings-row">
           <div className="settings-row-copy">
-            <strong>同步滚动</strong>
-            <span>在分屏模式中保持编辑区与预览成对滚动</span>
+            <strong>Sync scrolling</strong>
+            <span>Keep the editor and preview scrolling together in Split view</span>
           </div>
           <button
             type="button"
             className="toggle-switch"
             role="switch"
             aria-checked={syncScroll}
-            aria-label="同步滚动"
+            aria-label="Sync scrolling"
             onClick={() => setSyncScroll((value) => !value)}
           />
         </div>
       </section>
 
       <section className="settings-section">
-        <h3>图片与附件</h3>
-        <p>粘贴截图时，图片会写入当前工作区的这个相对目录，并插入对应的 Markdown 路径。</p>
+        <h3>Images &amp; attachments</h3>
+        <p>When you paste a screenshot, the image is saved to this folder in the workspace and its Markdown path is inserted.</p>
         <div className="form-field">
-          <label htmlFor="settings-image-directory">本地图片目录</label>
+          <label htmlFor="settings-image-directory">Local image folder</label>
           <input
             id="settings-image-directory"
             value={imageDirectory}
@@ -99,15 +99,15 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
             onChange={(event) => setImageDirectory(event.target.value)}
           />
           <span className="form-hint">
-            默认 `assets`。浏览器安全限制下，路径会落在当前打开的文件夹内。
+            Defaults to `assets`. Browser security keeps the path inside the open folder.
           </span>
         </div>
       </section>
 
       <section className="settings-section">
-        <h3>本地优先</h3>
+        <h3>Local first</h3>
         <p>
-          Markdown studio 不连接云端服务。你的文档写入本地文件夹；浏览器只保存主题、字号等偏好设置。
+          Markdown studio doesn't connect to cloud services. Your documents are written to local folders; the browser only stores preferences like theme and font size.
         </p>
       </section>
     </Modal>

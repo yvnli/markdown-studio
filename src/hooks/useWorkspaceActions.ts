@@ -4,7 +4,7 @@ import { useFileTreeActions } from './workspace/useFileTreeActions';
 import { useWorkspaceLifecycle } from './workspace/useWorkspaceLifecycle';
 
 /**
- * 工作区动作的组合入口：生命周期、文档、文件树动作各自独立，对外保持同一 API。
+ * Workspace actions facade: lifecycle, document, and file tree actions stay separate while exposing one API.
  */
 export function useWorkspaceActions() {
   const lifecycle = useWorkspaceLifecycle();

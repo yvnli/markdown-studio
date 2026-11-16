@@ -10,7 +10,7 @@ import {
   safeDecodePath,
 } from '../utils/paths';
 
-/** 与文件树节点结构兼容，只依赖分析所需的字段。 */
+/** Compatible with file tree nodes; only the fields needed for analysis. */
 export interface ImageAsset {
   path: string;
   name: string;
@@ -23,19 +23,19 @@ export type ImagePathTone = 'info' | 'success' | 'warning' | 'error';
 export interface ImagePathAnalysis {
   kind: ImagePathKind;
   tone: ImagePathTone;
-  /** 用户输入原文。 */
+  /** Raw user input. */
   input: string;
-  /** 去掉首尾空格与 Markdown 尖括号后的目标。 */
+  /** Target with surrounding whitespace and Markdown angle brackets removed. */
   source: string;
-  /** 文内显示用的工作区相对路径（外部链接为 null）。 */
+  /** Workspace-relative path for display in the document (null for external links). */
   resolvedPath: string | null;
-  /** 从当前文档目录到目标文件的相对路径（仅本地图片）。 */
+  /** Path from the current document folder to the target file (local images only). */
   documentRelativePath: string | null;
-  /** 工作区中真实存在的文件。 */
+  /** A file that actually exists in the workspace. */
   file: ImageAsset | null;
-  /** 路径写错、但工作区中存在同名图片时的候选。 */
+  /** Candidate when the path is wrong but a same-name image exists in the workspace. */
   sameName: ImageAsset | null;
-  /** 同名图片相对当前文档的路径，可直接替换输入。 */
+  /** Path to the same-name image relative to the current document, ready to replace the input. */
   sameNameRelativePath: string | null;
   isImageFormat: boolean;
   title: string;
@@ -45,7 +45,7 @@ export interface ImagePathAnalysis {
 
 export interface ImageSuggestion {
   file: ImageAsset;
-  /** 可直接填入 Markdown 的相对路径。 */
+  /** Relative path that can be inserted into Markdown directly. */
   relativePath: string;
 }
 
@@ -64,14 +64,14 @@ const IMAGE_FORMAT_LABELS: Record<string, string> = {
 };
 
 export const SUPPORTED_IMAGE_FORMATS_LABEL =
-  'PNG、JPEG、GIF、WebP、SVG、AVIF、BMP、ICO、APNG';
+  'PNG, JPEG, GIF, WebP, SVG, AVIF, BMP, ICO, APNG';
 
 export function isRemoteImageSource(source: string): boolean {
   return /^(https?:|data:|blob:)/i.test(source.trim());
 }
 
 /**
- * react-markdown 默认会过滤 data: 图片；预览需要放行图片 Data URL，同时继续拦截 javascript: 等协议。
+ * react-markdown filters data: images by default. The preview allows image data URLs while still blocking protocols like javascript:.
  */
 export function sanitizePreviewUrl(value: string): string {
   const url = value.trim();
@@ -96,7 +96,7 @@ export function imageFormatLabel(pathOrSource: string): string {
     return subtype ? subtype.toUpperCase() : 'DATA';
   }
   const extension = getExtension(value.split(/[?#]/)[0] ?? value);
-  return IMAGE_FORMAT_LABELS[extension] ?? (extension ? extension.slice(1).toUpperCase() : '图片');
+  return IMAGE_FORMAT_LABELS[extension] ?? (extension ? extension.slice(1).toUpperCase() : 'Image');
 }
 
 export function formatFileSize(bytes: number): string {
@@ -111,9 +111,9 @@ function cleanSource(value: string): string {
 }
 
 function locationHint(documentPath: string | null, resolvedPath: string, absolute: boolean): string {
-  if (absolute) return `以工作区根目录解析 → ${resolvedPath}`;
+  if (absolute) return `Resolved from the workspace root → ${resolvedPath}`;
   const directory = documentPath ? getDirName(documentPath) : '';
-  return `相对 ${directory || '工作区根目录'} → ${resolvedPath}`;
+  return `Relative to ${directory || 'workspace root'} → ${resolvedPath}`;
 }
 
 function defaultValue(
@@ -141,7 +141,7 @@ function defaultValue(
 }
 
 export interface AnalyzeImagePathOptions {
-  /** 是否已连接本地工作区；未连接时只提示路径规则，不谎称文件不存在。 */
+  /** Whether a local workspace is connected; when not, show path rules instead of claiming the file is missing. */
   connected?: boolean;
 }
 
@@ -154,16 +154,16 @@ export function analyzeImagePath(
   const raw = String(input ?? '');
   const source = cleanSource(raw);
   const connected = options.connected ?? true;
-  const base = defaultValue('empty', 'info', '输入图片路径');
+  const base = defaultValue('empty', 'info', 'Enter an image path');
   if (!source) {
     const directory = documentPath ? getDirName(documentPath) : '';
     return {
       ...base,
       input: raw,
       detail: directory
-        ? `相对路径以当前文档目录 ${directory} 为基准。`
-        : '相对路径以工作区根目录为基准。',
-      hint: `支持 ${SUPPORTED_IMAGE_FORMATS_LABEL}，也可以使用 https:// 或 data: 图片。`,
+        ? `Relative paths start from the current document folder (${directory}).`
+        : 'Relative paths start from the workspace root.',
+      hint: `Supports ${SUPPORTED_IMAGE_FORMATS_LABEL}, plus https:// or data: images.`,
     };
   }
 
@@ -175,9 +175,9 @@ export function analyzeImagePath(
         tone: 'warning',
         input: raw,
         source,
-        title: '这不是图片 Data URL',
-        detail: 'data: URL 需要以 data:image/ 开头。',
-        hint: `支持 ${SUPPORTED_IMAGE_FORMATS_LABEL}。`,
+        title: 'Not an image data URL',
+        detail: 'Data URLs must start with data:image/.',
+        hint: `Supported formats: ${SUPPORTED_IMAGE_FORMATS_LABEL}.`,
       };
     }
     return {
@@ -186,8 +186,8 @@ export function analyzeImagePath(
       tone: 'success',
       input: raw,
       source,
-      title: '内嵌 Data URL 图片',
-      detail: '图片数据直接写在 Markdown 中，不依赖工作区文件。',
+      title: 'Embedded data URL image',
+      detail: 'The image data lives in the Markdown itself and doesn\'t depend on a workspace file.',
       isImageFormat: true,
     };
   }
@@ -199,10 +199,10 @@ export function analyzeImagePath(
       tone: 'info',
       input: raw,
       source,
-      title: '外部 / 临时图片链接',
-      detail: '预览时会直接从链接加载图片，请确认它可以公开访问。',
+      title: 'External or temporary image link',
+      detail: 'The preview loads the image directly from the link. Make sure it\'s publicly accessible.',
       isImageFormat: isImageFile(source) || /^blob:/i.test(source),
-      hint: '外部链接无法用工作区路径规则校验。',
+      hint: 'External links can\'t be checked against workspace path rules.',
     };
   }
 
@@ -242,9 +242,9 @@ export function analyzeImagePath(
         sameName,
         sameNameRelativePath,
         isImageFormat: false,
-        title: `${file.name} 不是可预览的图片`,
+        title: `${file.name} isn't a previewable image`,
         detail,
-        hint: `支持的格式：${SUPPORTED_IMAGE_FORMATS_LABEL}。`,
+        hint: `Supported formats: ${SUPPORTED_IMAGE_FORMATS_LABEL}.`,
       };
     }
     return {
@@ -259,9 +259,9 @@ export function analyzeImagePath(
       sameName,
       sameNameRelativePath,
       isImageFormat: true,
-      title: `已找到 ${file.name}`,
+      title: `Found ${file.name}`,
       detail: `${detail} · ${format}${file.size ? ` · ${formatFileSize(file.size)}` : ''}`,
-      hint: '插入后将按这个路径引用图片。',
+      hint: 'The image will be referenced by this path after insertion.',
     };
   }
 
@@ -278,17 +278,17 @@ export function analyzeImagePath(
       sameName,
       sameNameRelativePath,
       isImageFormat: false,
-      title: `“${extension}” 不是支持的图片格式`,
+      title: `${extension} isn't a supported image format`,
       detail,
-      hint: `支持的格式：${SUPPORTED_IMAGE_FORMATS_LABEL}。`,
+      hint: `Supported formats: ${SUPPORTED_IMAGE_FORMATS_LABEL}.`,
     };
   }
 
   const suggestedRelative = sameName
-    ? `可直接改用 ${sameNameRelativePath}。`
+    ? `You can use ${sameNameRelativePath} instead.`
     : !connected
-      ? '打开本地工作区后可以校验文件是否存在。'
-      : `请检查大小写与目录；以 / 开头表示工作区根目录，例如 /${fileName || 'assets/图片.png'}。`;
+      ? 'Open a local workspace to check whether the file exists.'
+      : `Check the case and folder; a leading / means the workspace root, for example /${fileName || 'assets/image.png'}.`;
 
   return {
     ...base,
@@ -302,14 +302,14 @@ export function analyzeImagePath(
     sameName,
     sameNameRelativePath,
     isImageFormat,
-    title: `工作区中没有 ${resolvedPath || '这个文件'}`,
-    detail: connected ? detail : `${detail} · 当前未连接本地工作区`,
-    hint: sameName ? `工作区中发现同名图片 ${sameName.path}，${suggestedRelative}` : suggestedRelative,
+    title: `${resolvedPath || 'This file'} not found in the workspace`,
+    detail: connected ? detail : `${detail} · no local workspace connected`,
+    hint: sameName ? `Same-name image found in the workspace: ${sameName.path}. ${suggestedRelative}` : suggestedRelative,
   };
 }
 
 /**
- * 为「插入图片」按输入路径推荐工作区里的图片，优先返回精确路径与同名文件。
+ * Suggest workspace images for Insert image based on the typed path, ranking exact paths and same-name files first.
  */
 export function suggestImageFiles(
   input: string,
@@ -340,7 +340,7 @@ export function suggestImageFiles(
     })
     .sort((a, b) => {
       if (a.score !== b.score) return a.score - b.score;
-      return a.file.path.localeCompare(b.file.path, 'zh-CN', {
+      return a.file.path.localeCompare(b.file.path, 'en', {
         numeric: true,
         sensitivity: 'base',
       });
@@ -350,7 +350,7 @@ export function suggestImageFiles(
 }
 
 /**
- * Markdown 目的地中的空格和括号会截断链接，插入前转义；保留用户已写的 `%`。
+ * Spaces and parentheses in Markdown destinations break links, so escape them before insertion; keep any % the user already typed.
  */
 const MARKDOWN_DESTINATION_ESCAPES: Record<string, string> = {
   ' ': '%20',
@@ -371,12 +371,12 @@ export function encodeMarkdownDestination(value: string): string {
 
 export function defaultImageAlt(value: string): string {
   const source = cleanSource(value);
-  if (!source) return '图片';
-  if (/^(data:|https?:|blob:)/i.test(source)) return '图片';
-  return getBaseName(source) || '图片';
+  if (!source) return 'Image';
+  if (/^(data:|https?:|blob:)/i.test(source)) return 'Image';
+  return getBaseName(source) || 'Image';
 }
 
-/** Markdown 替代文字中转义方括号，避免 `![a]b](x.png)` 这类语法被截断。 */
+/** Escape square brackets in Markdown alt text so syntax like `![a]b](x.png)` isn't cut short. */
 export function escapeMarkdownAlt(value: string): string {
   return value.replace(/[[\]\\]/g, '\\$&').replace(/\s+/g, ' ').trim();
 }

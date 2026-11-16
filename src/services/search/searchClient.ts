@@ -19,14 +19,14 @@ export interface MatchingPathsQuery {
 }
 
 export interface SearchClient {
-  /** 重建整个索引；仅在目录树签名变化时调用。 */
+  /** Rebuild the whole index; call this only when the directory tree signature changes. */
   setIndex: (files: SearchFileInput[]) => void;
-  /** 增量更新少量文件（例如未保存的打开文档）。 */
+  /** Incrementally update a few files, such as unsaved open documents. */
   updateIndex: (files: SearchFileInput[]) => void;
-  /** 撤销增量覆盖，恢复为索引中的基准内容。 */
+  /** Undo incremental overrides and restore the baseline content from the index. */
   resetOverrides: (paths: string[]) => void;
   search: (payload: SearchQuery) => Promise<SearchResponse>;
-  /** 返回全部匹配文件路径，用于“全部替换”而无需把正文复制回主线程。 */
+  /** Return every matching file path for "Replace all" without copying content to the main thread. */
   matchingPaths: (payload: MatchingPathsQuery) => Promise<string[]>;
   dispose: () => void;
 }
@@ -53,7 +53,7 @@ export function createSearchClient(): SearchClient {
 
   worker.addEventListener('error', (event) => {
     for (const request of pending.values()) {
-      request.reject(new Error(event.message || '搜索 worker 失败。'));
+      request.reject(new Error(event.message || 'Search worker failed.'));
     }
     pending.clear();
   });

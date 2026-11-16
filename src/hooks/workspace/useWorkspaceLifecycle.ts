@@ -29,7 +29,7 @@ export function useWorkspaceLifecycle(): WorkspaceLifecycle {
       if (restored.snapshot) {
         await adoptWorkspace(restored.snapshot, { preserveRecovered: true });
         pushToast({
-          title: '已恢复本地工作区',
+          title: 'Local workspace restored',
           description: restored.snapshot.name,
           tone: 'success',
         });
@@ -46,8 +46,8 @@ export function useWorkspaceLifecycle(): WorkspaceLifecycle {
   const openFolder = useCallback(async () => {
     if (!workspaceService.isSupported) {
       pushToast({
-        title: '当前浏览器不支持打开本地文件夹',
-        description: '请使用最新版 Chrome、Edge 或 Chromium。',
+        title: "This browser can't open local folders",
+        description: 'Use the latest Chrome, Edge, or Chromium.',
         tone: 'error',
         durationMs: 4200,
       });
@@ -56,24 +56,25 @@ export function useWorkspaceLifecycle(): WorkspaceLifecycle {
     const previousStatus = useWorkspaceStore.getState().workspaceStatus;
     useWorkspaceStore.getState().setWorkspaceStatus('loading');
     try {
-      // 先落盘再切换：工作区切换后旧目录不再可写，未保存内容会永久丢失。
+      // Save before switching: the old folder is no longer writable after the switch, so unsaved changes would be lost permanently.
       const savedCount = await persistDirtyWorkspaceDocuments();
       const snapshot = await workspaceService.openDirectory();
       await adoptWorkspace(snapshot);
+      const fileSummary = `${snapshot.fileCount} Markdown ${snapshot.fileCount === 1 ? 'file' : 'files'}`;
       pushToast({
-        title: '工作区已打开',
+        title: 'Workspace opened',
         description:
           savedCount > 0
-            ? `${snapshot.name} · ${snapshot.fileCount} 个 Markdown 文件 · 已保存 ${savedCount} 个未保存文档`
-            : `${snapshot.name} · ${snapshot.fileCount} 个 Markdown 文件`,
+            ? `${snapshot.name} · ${fileSummary} · wrote ${savedCount} unsaved ${savedCount === 1 ? 'document' : 'documents'} to disk`
+            : `${snapshot.name} · ${fileSummary}`,
         tone: 'success',
       });
     } catch (error) {
       useWorkspaceStore.getState().setWorkspaceStatus(previousStatus);
       if (error instanceof DOMException && error.name === 'AbortError') return;
       pushToast({
-        title: '无法打开工作区',
-        description: error instanceof Error ? error.message : '请重试。',
+        title: 'Could not open workspace',
+        description: error instanceof Error ? error.message : 'Please try again.',
         tone: 'error',
         durationMs: 4200,
       });
@@ -84,21 +85,21 @@ export function useWorkspaceLifecycle(): WorkspaceLifecycle {
     useWorkspaceStore.getState().setWorkspaceStatus('loading');
     try {
       const snapshot = await workspaceService.reconnectLastWorkspace();
-      if (!snapshot) throw new Error('没有待恢复的工作区。');
+      if (!snapshot) throw new Error('No workspace to restore.');
       await adoptWorkspace(snapshot, { preserveRecovered: true });
-      pushToast({ title: '工作区已重新连接', tone: 'success' });
+      pushToast({ title: 'Workspace reconnected', tone: 'success' });
     } catch (error) {
       useWorkspaceStore.getState().setWorkspaceStatus('permission');
       pushToast({
-        title: '重新连接失败',
-        description: error instanceof Error ? error.message : '请重新选择文件夹。',
+        title: 'Reconnect failed',
+        description: error instanceof Error ? error.message : 'Please choose the folder again.',
         tone: 'error',
       });
     }
   }, [pushToast]);
 
   /**
-   * 单飞刷新：5 秒轮询、手动刷新与桌面原生监听共享同一个进行中的 Promise。
+   * Single-flight refresh: the 5-second poll, manual refresh, and native desktop listener share one in-progress Promise.
    */
   const refreshWorkspace = useCallback(
     async (options: { silent?: boolean } = {}): Promise<void> => {
@@ -108,7 +109,7 @@ export function useWorkspaceLifecycle(): WorkspaceLifecycle {
       const task = (async () => {
         try {
           const snapshot = await workspaceService.scan();
-          // 扫描期间切换了工作区：丢弃旧结果，防止旧树覆盖新工作区。
+          // The workspace changed during the scan: drop the stale result so the old tree can't overwrite the new workspace.
           if (useWorkspaceStore.getState().workspace.openedAt !== workspaceOpenedAt) return;
           const changed = useWorkspaceStore.getState().setTree(snapshot.tree, snapshot.fileCount);
           const treeIndex = useWorkspaceStore.getState().treeIndex;
@@ -125,13 +126,13 @@ export function useWorkspaceLifecycle(): WorkspaceLifecycle {
               .syncDocumentFromDisk(document.id, latest.content, latest.lastModified);
           }
           if (!options.silent && changed) {
-            pushToast({ title: '工作区已刷新', tone: 'default', durationMs: 1600 });
+            pushToast({ title: 'Workspace refreshed', tone: 'default', durationMs: 1600 });
           }
         } catch (error) {
-          // 后台轮询失败不抛出，避免产生未处理的 Promise rejection。
+          // Don't throw on background poll failures, to avoid unhandled Promise rejections.
           if (!options.silent) {
             pushToast({
-              title: '刷新工作区失败',
+              title: 'Could not refresh workspace',
               description: error instanceof Error ? error.message : undefined,
               tone: 'error',
             });

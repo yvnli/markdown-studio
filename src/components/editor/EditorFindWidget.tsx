@@ -210,8 +210,8 @@ export function EditorFindWidget({ view, content }: EditorFindWidgetProps) {
     activeRef.current = 0;
     setActiveIndex(0);
     pushToast({
-      title: `已替换 ${outcome.count} 处`,
-      description: outcome.truncated ? '匹配过多，仅替换了前一部分。' : undefined,
+      title: `Replaced ${outcome.count} matches`,
+      description: outcome.truncated ? 'Too many matches; only the first few were replaced.' : undefined,
       tone: 'success',
       durationMs: 1800,
     });

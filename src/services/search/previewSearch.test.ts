@@ -28,7 +28,7 @@ describe('buildPreviewTextIndex', () => {
   it('skips code block chrome and hidden duplicate markup', () => {
     const root = mount(`
       <div class="code-block">
-        <div class="code-block-header"><span>ts</span><button>复制</button></div>
+        <div class="code-block-header"><span>ts</span><button>Copy</button></div>
         <pre><code>const x = 1;</code></pre>
       </div>
       <span class="katex-mathml">hidden math</span>
@@ -36,7 +36,7 @@ describe('buildPreviewTextIndex', () => {
     `);
     const index = buildPreviewTextIndex(root);
     expect(index.text).toContain('const x = 1;');
-    expect(index.text).not.toContain('复制');
+    expect(index.text).not.toContain('Copy');
     expect(index.text).not.toContain('hidden math');
     expect(index.text).not.toContain('empty state');
   });

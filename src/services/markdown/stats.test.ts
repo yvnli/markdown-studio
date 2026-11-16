@@ -4,10 +4,12 @@ import { extractOutline, slugifyHeading } from './slug';
 
 describe('stripMarkdown', () => {
   it('keeps visible text and removes link and emphasis syntax', () => {
-    const text = stripMarkdown('# 标题\n\n一段 **加粗** 与 [链接](https://example.com)。');
-    expect(text).toContain('标题');
-    expect(text).toContain('加粗');
-    expect(text).toContain('链接');
+    const text = stripMarkdown(
+      '# Heading\n\nA paragraph with **bold** and a [link](https://example.com).',
+    );
+    expect(text).toContain('Heading');
+    expect(text).toContain('bold');
+    expect(text).toContain('link');
     expect(text).not.toContain('https://example.com');
     expect(text).not.toContain('**');
   });

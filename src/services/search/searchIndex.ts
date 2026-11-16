@@ -11,8 +11,9 @@ export interface SearchIndexQuery {
 export type MatchingPathsQuery = Omit<SearchIndexQuery, 'maxResults'>;
 
 /**
- * 搜索索引的唯一实现：基准内容 + 打开文档的增量覆盖。
- * 运行在 Worker 中，渲染层不再需要持有工作区正文副本。
+ * The single search index implementation: baseline content plus incremental overrides
+ * for open documents. It runs in a Worker, so the renderer no longer needs to hold a
+ * copy of the workspace content.
  */
 export class SearchIndex {
   private base = new Map<string, string>();
@@ -61,8 +62,9 @@ export class SearchIndex {
   }
 
   /**
-   * 返回所有匹配文件路径（不受 maxResults 限制），供“全部替换”使用。
-   * 渲染层因此不需要为了筛文件而保留整库正文。
+   * Return every matching file path, ignoring maxResults, for "Replace all".
+   * The renderer therefore does not need to keep the whole library's content just to
+   * filter files.
    */
   matchingPaths(query: MatchingPathsQuery): string[] {
     if (!query.query) return [];

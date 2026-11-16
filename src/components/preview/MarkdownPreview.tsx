@@ -37,7 +37,7 @@ interface MarkdownPreviewProps {
   onOutlineChange: (items: OutlineItem[]) => void;
   onOpenPath?: (path: string) => void;
   onScroll?: (event: React.UIEvent<HTMLDivElement>) => void;
-  /** 图片查看器覆盖预览区时，隐藏 Markdown 内容的交互与辅助技术可见性。 */
+  /** Hide Markdown interaction and assistive-technology visibility while the image viewer covers the preview. */
   inactive?: boolean;
 }
 
@@ -107,7 +107,7 @@ function MarkdownPreviewComponent({
         const hashOnly = target.startsWith('#');
         const localTarget =
           !external && !hashOnly ? resolveInternalPath(documentPath, target) : '';
-        // 本地 Markdown 链接与图片链接都交给 openPath：图片会打开图片查看器。
+        // Local Markdown and image links both go through openPath; images open the viewer.
         const internalFile =
           !external && !hashOnly && (isMarkdownFile(localTarget) || isImageFile(localTarget));
         return (
@@ -160,8 +160,8 @@ function MarkdownPreviewComponent({
           <span className="preview-empty-icon" aria-hidden="true">
             <CloudSun size={26} strokeWidth={1.4} />
           </span>
-          <strong>还没有落下第一笔</strong>
-          <span>在左侧写下 Markdown，排版会在这里慢慢展开。</span>
+          <strong>Nothing written yet</strong>
+          <span>Start writing Markdown on the left; it will take shape here.</span>
         </div>
       </div>
     );

@@ -17,7 +17,7 @@ export function ToastStack() {
               <strong>{toast.title}</strong>
               {toast.description ? <span>{toast.description}</span> : null}
             </div>
-            <button type="button" className="toast-close" aria-label="关闭提示" onClick={() => dismiss(toast.id)}>
+            <button type="button" className="toast-close" aria-label="Dismiss notification" onClick={() => dismiss(toast.id)}>
               <X size={12} />
             </button>
           </div>

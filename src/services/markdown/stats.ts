@@ -62,7 +62,7 @@ export function calculateMarkdownStats(markdown: string): MarkdownStats {
 }
 
 export function formatNumber(value: number): string {
-  return new Intl.NumberFormat('zh-CN').format(value);
+  return new Intl.NumberFormat('en-US').format(value);
 }
 
 export function isCjkCharacter(value: string): boolean {

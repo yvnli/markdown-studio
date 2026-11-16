@@ -6,7 +6,7 @@ export interface WorkspaceTreeIndex {
   files: FileNode[];
   markdownFiles: FileNode[];
   imageFiles: FileNode[];
-  /** 变更签名：路径 + mtime + size；用于判断树是否真的发生变化。 */
+  /** Change signature: path + mtime + size, used to tell whether the tree actually changed. */
   signature: string;
 }
 

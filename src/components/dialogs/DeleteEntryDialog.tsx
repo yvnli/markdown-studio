@@ -20,7 +20,7 @@ export function DeleteEntryDialog({ node, onClose, onConfirm }: DeleteEntryDialo
       await onConfirm();
       onClose();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : '删除失败。');
+      setError(submitError instanceof Error ? submitError.message : 'Delete failed.');
     } finally {
       setBusy(false);
     }
@@ -28,25 +28,25 @@ export function DeleteEntryDialog({ node, onClose, onConfirm }: DeleteEntryDialo
 
   return (
     <Modal
-      title={`删除${node.kind === 'directory' ? '文件夹' : '文件'}？`}
-      description="此操作会直接修改本地文件，无法从 Markdown studio 撤销。"
+      title={`Delete ${node.kind === 'directory' ? 'folder' : 'file'}?`}
+      description="This changes local files directly and can't be undone from Markdown studio."
       onClose={onClose}
       hideClose={busy}
       footer={
         <>
           <button type="button" className="secondary-button" onClick={onClose} disabled={busy}>
-            取消
+            Cancel
           </button>
           <button type="button" className="primary-button danger-button" onClick={() => void submit()} disabled={busy}>
             {busy ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
-            删除
+            Delete
           </button>
         </>
       }
     >
       <p className="dialog-danger-copy">
         <code>{node.path || node.name}</code>
-        {node.kind === 'directory' ? ' 及其中所有内容将被永久删除。' : ' 将被永久删除。'}
+        {node.kind === 'directory' ? ' and everything in it will be deleted permanently.' : ' will be deleted permanently.'}
       </p>
       {error ? <div className="form-error" role="alert">{error}</div> : null}
     </Modal>

@@ -11,7 +11,7 @@ import {
 
 const SAVE_DELAY_MS = 650;
 
-// 模块级缓存：StrictMode 会重复执行 effect，确保两次挂载共享同一次读取。
+// Module-level cache: StrictMode runs effects twice, so both mounts share a single load.
 let sessionLoad: Promise<Awaited<ReturnType<typeof loadSession>>> | null = null;
 
 function loadSessionOnce() {
@@ -28,7 +28,7 @@ export function useSessionPersistence(): boolean {
   const timerRef = useRef<number | null>(null);
   const quotaWarnedRef = useRef(false);
   const hydratedRef = useRef(false);
-  // 已确认写入 IndexedDB 的文档引用；用于把持久化粒度缩小到“变化的文档”。
+  // Document references confirmed written to IndexedDB; keeps persistence scoped to changed documents.
   const persistedRef = useRef<typeof documents>([]);
   const persistSeqRef = useRef(0);
   latestRef.current = { documents, activeDocumentId };
@@ -41,7 +41,7 @@ export function useSessionPersistence(): boolean {
         useWorkspaceStore
           .getState()
           .hydrateDocuments(session.documents, session.activeDocumentId);
-        // 可能是从 v2/v1 迁移而来：清空基准，首次保存会写入按文档记录的新格式。
+        // Possibly migrated from v2/v1: clear the baseline; the first save writes the new per-document format.
         persistedRef.current = [];
       })
       .finally(() => {
@@ -71,8 +71,8 @@ export function useSessionPersistence(): boolean {
       if (!quotaWarnedRef.current) {
         quotaWarnedRef.current = true;
         pushToast({
-          title: '草稿快照过大',
-          description: '请及时保存到本地文件，浏览器只保留最近的一部分草稿。',
+          title: 'Draft snapshot is too large',
+          description: 'Save to a local file soon. The browser keeps only the most recent drafts.',
           tone: 'error',
           durationMs: 4200,
         });
@@ -83,15 +83,15 @@ export function useSessionPersistence(): boolean {
     persistSeqRef.current = seq;
     void saveSession(payload, persistedRef.current)
       .then(() => {
-        // 只记录本次真正写入的那批引用，避免把写入期间的编辑误标为已持久化。
+        // Record only the references actually written this time, so edits made during the write aren't marked as persisted.
         if (seq === persistSeqRef.current) persistedRef.current = currentDocuments;
       })
       .catch(() => {
         if (!quotaWarnedRef.current) {
           quotaWarnedRef.current = true;
           pushToast({
-            title: '浏览器存储空间不足',
-            description: '请将重要文档保存到本地文件。',
+            title: 'Browser storage is full',
+            description: 'Save important documents to a local file.',
             tone: 'error',
             durationMs: 4200,
           });
@@ -117,7 +117,7 @@ export function useSessionPersistence(): boolean {
   useEffect(() => {
     const flush = () => {
       const { documents: currentDocuments, activeDocumentId: currentActive } = latestRef.current;
-      // 同步兜底只写未保存内容，保证崩溃/强退时最多丢失 650ms 内的修改。
+      // The synchronous fallback writes only unsaved content, so a crash loses at most 650 ms of edits.
       saveSessionBackupSync(currentDocuments, currentActive);
       persist();
     };

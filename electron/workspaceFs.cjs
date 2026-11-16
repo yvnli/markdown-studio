@@ -60,7 +60,8 @@ class WorkspaceFs {
   async initialize() {
     const stat = await fs.stat(this.rootPath);
     if (!stat.isDirectory()) throw new Error('Workbench path is not a folder.');
-    // 以真实路径为准，后续所有越界检查都与它比较，避免符号链接绕过。
+    // Use the real path as the source of truth; every later boundary check compares
+    // against it so symlinks cannot bypass the workspace.
     this.realRootPath = await fs.realpath(this.rootPath);
     return this;
   }
@@ -76,8 +77,9 @@ class WorkspaceFs {
   }
 
   /**
-   * 对目标（或最近的已存在祖先）做 realpath，确认解析后的路径仍在工作区内。
-   * 这一步专门防御“工作区内指向外部的符号链接”。
+   * Resolve the realpath of the target (or its nearest existing ancestor) and confirm that
+   * the resolved path is still inside the workspace.
+   * This specifically guards against symlinks inside the workspace that point outside it.
    */
   async assertInsideWorkspace(absolutePath) {
     let probe = absolutePath;
@@ -151,7 +153,7 @@ class WorkspaceFs {
       });
       return nodes.filter(Boolean).sort((a, b) => {
         if (a.kind !== b.kind) return a.kind === 'directory' ? -1 : 1;
-        return a.name.localeCompare(b.name, 'zh-CN', { numeric: true, sensitivity: 'base' });
+        return a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' });
       });
     };
 

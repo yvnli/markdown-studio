@@ -1,7 +1,7 @@
 import { SearchIndex } from '../services/search/searchIndex';
 import type { SearchWorkerRequest, SearchWorkerResponse } from '../types/workspace';
 
-// 索引驻留在 Worker 内：主线程只发送查询条件与增量补丁。
+// The index lives inside the Worker: the main thread only sends queries and incremental patches.
 const index = new SearchIndex();
 
 self.onmessage = (event: MessageEvent<SearchWorkerRequest>) => {

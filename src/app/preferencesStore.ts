@@ -9,7 +9,7 @@ interface PreferencesState {
   sidebarOpen: boolean;
   syncScroll: boolean;
   fontSize: number;
-  /** Markdown 预览缩放倍率，1 = 100%。 */
+  /** Markdown preview zoom factor; 1 = 100%. */
   previewZoom: number;
   imageDirectory: string;
   setAppearance: (appearance: Appearance) => void;

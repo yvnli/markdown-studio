@@ -1,5 +1,5 @@
 /**
- * 以有限并发执行异步映射，避免大目录扫描时串行 `await` 造成的长耗时。
+ * Run async mappings with bounded concurrency, avoiding the long serial `await` chains of large directory scans.
  */
 export async function mapWithConcurrency<T, R>(
   items: readonly T[],

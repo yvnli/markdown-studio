@@ -7,64 +7,64 @@ export interface SampleFile {
   content: string;
 }
 
-const welcome = `# 把想法，安放在纸上
+const welcome = `# Put your thoughts on paper
 
-> 写作不是为了被看见，而是为了让某个模糊的念头，终于拥有轮廓。
+> Writing is not about being seen. It is about giving a vague idea a shape of its own.
 >
-> —— Markdown studio
+> — Markdown studio
 
-欢迎来到 **Markdown studio**，一间遵循 Apple 视觉语言、专注而安静的 Markdown 写作室。左边落笔，右边成章；文字与排版之间，只隔一次呼吸。
+Welcome to **Markdown studio**, a quiet, focused Markdown writing room inspired by Apple's visual language. Write on the left, watch it become a page on the right; between text and typography, there is only a breath.
 
 ---
 
-## 从这里开始
+## Start here
 
-1. 在左侧编辑区写下 Markdown 语法。
-2. 打开“分屏”或“预览”，查看实时排版。
-3. 使用工具栏或 \`⌘ / Ctrl\` 快捷键完成常见格式。
-4. 打开本地文件夹后，文档会写回你的磁盘，而不是云端。
+1. Write Markdown in the editor on the left.
+2. Switch to "Split" or "Preview" to see the live layout.
+3. Use the toolbar or \`⌘ / Ctrl\` shortcuts for common formatting.
+4. Open a local folder, and your documents are written back to disk instead of the cloud.
 
-> **本地优先**：没有账号、没有上传、没有追踪。你的文字默认只属于你。
+> **Local first**: no account, no uploads, no tracking. Your words belong to you by default.
 
-### 今天想写点什么？
+### What do you want to write today?
 
-- [x] 把一闪而过的念头记下来
-- [x] 给它一个安静的段落
-- [ ] 明天再回来，继续写完
+- [x] Capture a passing thought
+- [x] Give it a quiet paragraph
+- [ ] Come back tomorrow and finish it
 
-## 富有表现力的内容
+## Expressive content
 
-行内公式可以自然嵌进句子：质能方程 $E = mc^2$，或者一个更熟悉的求和：
+Inline math can sit naturally inside a sentence: mass–energy equivalence $E = mc^2$, or a more familiar sum:
 
 $$
 \\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}
 $$
 
-Mermaid 会把代码块变成一张真正的图：
+Mermaid turns a code block into a real diagram:
 
 \`\`\`mermaid
 flowchart LR
-  A[模糊的想法] --> B{写下来}
-  B --> C[清晰的段落]
-  B --> D[继续修改]
-  C --> E[完成]
+  A[Vague idea] --> B{Write it down}
+  B --> C[Clear paragraph]
+  B --> D[Keep revising]
+  C --> E[Done]
   D --> B
 \`\`\`
 
-### 一张安静的表格
+### A quiet table
 
-| 写作习惯 | 为什么有用 | 从今天开始 |
+| Writing habit | Why it helps | Start today |
 | :--- | :--- | ---: |
-| 每天写一点 | 让思考保持流动 | 15 分钟 |
-| 先写完再修改 | 降低开始的阻力 | 一次就好 |
-| 定期回看 | 发现自己的变化 | 每周一次 |
+| Write a little every day | Keep your thinking moving | 15 minutes |
+| Finish first, edit later | Lower the barrier to starting | Just once |
+| Review regularly | Notice how you have changed | Once a week |
 
-### 代码也可以很安静
+### Code can be quiet too
 
 \`\`\`typescript
 type Thought = {
   idea: string;
-  clarity: "在写下来的那一刻发生";
+  clarity: "happens the moment you write it down";
 };
 
 const write = (thought: Thought) => thought.clarity;
@@ -72,42 +72,42 @@ const write = (thought: Thought) => thought.clarity;
 
 ---
 
-## 愿你写得自在
+## May you write freely
 
-不需要一次写得完美。先把句子放在纸上，再慢慢让它长出结构。
+You do not have to get it perfect in one pass. Put the sentence on paper first, then let it grow into structure.
 
-*愿你的每一个句子，都抵达它该去的地方。*
+*May every sentence of yours arrive where it belongs.*
 
 *Markdown studio · Local first, always.*
 `;
 
-const syntax = `# Markdown 语法速查
+const syntax = `# Markdown Syntax
 
-## 标题与强调
+## Headings and emphasis
 
-使用 \`#\` 到 \`######\` 创建六个层级的标题。文本可以 **加粗**、*斜体*、~~删除~~，也可以写成 \`行内代码\`。
+Use \`#\` through \`######\` to create six levels of headings. Text can be **bold**, *italic*, ~~struck through~~, or written as \`inline code\`.
 
-## 列表
+## Lists
 
-- 无序列表
-  - 支持嵌套
-  - 支持连续书写
-- 第二项
+- Unordered list
+  - Nested items
+  - Continuous writing
+- Second item
 
-1. 有序列表
-2. 自动续行
-3. 按 Tab 可以缩进
+1. Ordered list
+2. Continues automatically
+3. Press Tab to indent
 
-- [ ] 待办事项
-- [x] 已完成事项
+- [ ] To-do
+- [x] Completed
 
-## 引用与链接
+## Quotes and links
 
-> 引用适合承载一句重要的话，或者一段旁白。
+> A quote is a good place for a sentence worth keeping, or a line of narration.
 
-[Markdown 指南](https://commonmark.org) · [公式与图表](公式与图表.md)
+[Markdown Guide](https://commonmark.org) · [Math and Diagrams](<Math and Diagrams.md>)
 
-## 代码
+## Code
 
 \`\`\`javascript
 const studio = {
@@ -117,26 +117,26 @@ const studio = {
 };
 \`\`\`
 
-## 分割线
+## Divider
 
 ---
 
-一个简单的分割线，可以让长文有呼吸。
+A simple divider gives a long piece room to breathe.
 `;
 
-const visuals = `# 公式与图表
+const visuals = `# Math and Diagrams
 
 ## LaTeX
 
-行内公式：$a^2 + b^2 = c^2$。
+Inline math: $a^2 + b^2 = c^2$.
 
-块级公式：
+Block math:
 
 $$
 \\int_{-\\infty}^{\\infty} e^{-x^2} \\, dx = \\sqrt{\\pi}
 $$
 
-矩阵与对齐：
+Matrices and alignment:
 
 $$
 \\begin{aligned}
@@ -145,79 +145,79 @@ f(x) &= (x + 1)^2 \\\\
 \\end{aligned}
 $$
 
-## Mermaid 流程图
+## Mermaid flowchart
 
 \`\`\`mermaid
 flowchart TD
-  Idea[想法] --> Draft[初稿]
-  Draft --> Feedback{回看}
-  Feedback -->|需要补充| Draft
-  Feedback -->|足够清楚| Done[发布]
+  Idea[Idea] --> Draft[First draft]
+  Draft --> Feedback{Review}
+  Feedback -->|Needs work| Draft
+  Feedback -->|Clear enough| Done[Publish]
 \`\`\`
 
-## 时序图
+## Sequence diagram
 
 \`\`\`mermaid
 sequenceDiagram
-  participant W as 作者
-  participant E as 编辑器
-  participant P as 预览
-  W->>E: 输入 Markdown
-  E->>P: 实时渲染
-  P-->>W: 看到排版
+  participant W as Writer
+  participant E as Editor
+  participant P as Preview
+  W->>E: Type Markdown
+  E->>P: Render live
+  P-->>W: See the typeset page
 \`\`\`
 
-> 图表、公式与代码，都是文字的不同形态。
+> Diagrams, formulas, and code are all different forms of text.
 `;
 
-const ideas = `# 灵感碎片
+const ideas = `# Sparks
 
-## 可以写下的问题
+## Questions worth writing about
 
-- 如果不需要向任何人证明，我会写什么？
-- 哪个念头已经反复出现了一周？
-- 今天有什么微小的瞬间值得保存？
+- If I did not have to prove anything to anyone, what would I write?
+- Which thought has been coming back for a week?
+- What small moment today is worth keeping?
 
-## 三个开头
+## Three openings
 
-1. 我最近一直在想一件事。
-2. 如果换一种说法，这件事会变成什么？
-3. 此刻窗外很安静，而我想起……
+1. I have been thinking about one thing for a while.
+2. If I said it another way, what would this become?
+3. The window is quiet right now, and I remember…
 
-> 不必等到想清楚再开始。开始本身，就是思考的一部分。
+> You do not have to wait until it is clear. Starting is part of thinking.
 
-## 待整理
+## To sort out
 
-- [ ] 关于“慢写作”的片段
-- [ ] 一篇没有结论的随笔
-- [ ] 下周的阅读笔记
+- [ ] Fragments about "slow writing"
+- [ ] An essay with no conclusion
+- [ ] Reading notes for next week
 `;
 
-const reading = `# 阅读清单
+const reading = `# Reading List
 
-| 书名 | 状态 | 备注 |
+| Title | Status | Notes |
 | --- | --- | --- |
-| 《写作这回事》 | 在读 | 重读关于工具箱的章节 |
-| 《思考，快与慢》 | 待读 | 先读第一部分 |
-| 《禅与摩托车维修艺术》 | 已读 | 想再读一遍 |
+| On Writing | Reading | Re-reading the toolbox chapter |
+| Thinking, Fast and Slow | To read | Start with part one |
+| Zen and the Art of Motorcycle Maintenance | Read | Want to read it again |
 
-## 摘录
+## Excerpts
 
-> 你无法在真空中写作。你只能在世界上写作。
+> You cannot write in a vacuum. You can only write in the world.
 
-## 下一步
+## Next steps
 
-- [ ] 每周整理一次摘录
-- [ ] 为每本书写三句话
-- [ ] 把笔记连接起来
+- [ ] Organize excerpts once a week
+- [ ] Write three sentences for every book
+- [ ] Connect the notes
 `;
 
 export const SAMPLE_FILES: SampleFile[] = [
-  { path: '开始写作.md', content: welcome },
-  { path: '指南/Markdown 语法.md', content: syntax },
-  { path: '指南/公式与图表.md', content: visuals },
-  { path: '笔记/灵感碎片.md', content: ideas },
-  { path: '笔记/阅读清单.md', content: reading },
+  { path: 'Start Writing.md', content: welcome },
+  { path: 'Guides/Markdown Syntax.md', content: syntax },
+  { path: 'Guides/Math and Diagrams.md', content: visuals },
+  { path: 'Notes/Sparks.md', content: ideas },
+  { path: 'Notes/Reading List.md', content: reading },
 ];
 
 export const SAMPLE_WELCOME_PATH = SAMPLE_FILES[0].path;
@@ -240,7 +240,7 @@ export function buildDocumentFromSample(file: SampleFile, now = Date.now()): Doc
 }
 
 export function buildSampleTree(): TreeNode[] {
-  const root: DirectoryNode = { kind: 'directory', name: '示例工作区', path: '', children: [] };
+  const root: DirectoryNode = { kind: 'directory', name: 'Sample Workspace', path: '', children: [] };
   for (const file of SAMPLE_FILES) {
     const parts = file.path.split('/');
     let current = root;
@@ -277,7 +277,7 @@ export function buildSampleTree(): TreeNode[] {
 function sortTree(nodes: TreeNode[]): void {
   nodes.sort((a, b) => {
     if (a.kind !== b.kind) return a.kind === 'directory' ? -1 : 1;
-    return a.name.localeCompare(b.name, 'zh-CN');
+    return a.name.localeCompare(b.name, 'en');
   });
   for (const node of nodes) {
     if (node.kind === 'directory') sortTree(node.children);

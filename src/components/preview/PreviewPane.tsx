@@ -47,7 +47,8 @@ export function PreviewPane({
   onToggleSync,
   onOpenPath,
 }: PreviewPaneProps) {
-  // 预览只取当前文档的 path 与 content；path 是原始值，避免因无关字段变化重渲染。
+  // Read only the current document's path and content; path is the raw value, so unrelated
+  // field changes do not trigger a re-render.
   const documentPath = useWorkspaceStore(
     (state) => state.documents.find((item) => item.id === documentId)?.path ?? null,
   );
@@ -61,7 +62,8 @@ export function PreviewPane({
   const closeImagePreview = useUIStore((state) => state.closeImagePreview);
   const viewingImage = Boolean(imagePreview);
 
-  // Ctrl / ⌘ + 滚轮缩放预览。React 的 onWheel 是 passive 的，必须用原生监听才能阻止页面缩放。
+  // Ctrl / ⌘ + wheel zooms the preview. React's onWheel is passive, so a native
+  // listener is required to prevent browser page zoom.
   useEffect(() => {
     const scroll = scrollRef.current;
     if (!scroll) return;
@@ -78,7 +80,7 @@ export function PreviewPane({
   return (
     <section
       className={`preview-pane${viewingImage && !documentId ? ' is-image-only' : ''}`}
-      aria-label={viewingImage ? '图片预览区' : 'Markdown 预览区'}
+      aria-label={viewingImage ? 'Image preview' : 'Markdown preview'}
       style={{ '--preview-zoom': previewZoom } as CSSProperties}
     >
       <div className="pane-header">
@@ -91,13 +93,13 @@ export function PreviewPane({
             <button
               type="button"
               className="pane-tool"
-              aria-label="返回 Markdown 预览"
+              aria-label="Back to Markdown preview"
               onClick={closeImagePreview}
-              data-tip="返回 Markdown 预览"
-              title="返回 Markdown 预览（Esc）"
+              data-tip="Back to Markdown preview"
+              title="Back to Markdown preview (Esc)"
             >
               <ArrowLeft size={13} />
-              <span>返回</span>
+              <span>Back</span>
             </button>
           ) : (
             <>
@@ -105,26 +107,26 @@ export function PreviewPane({
               <button
                 type="button"
                 className="pane-tool"
-                aria-label={syncScroll ? '关闭同步滚动' : '开启同步滚动'}
+                aria-label={syncScroll ? 'Turn off sync scrolling' : 'Turn on sync scrolling'}
                 aria-pressed={syncScroll}
                 onClick={onToggleSync}
-                data-tip={syncScroll ? '关闭同步滚动' : '开启同步滚动'}
-                title={syncScroll ? '关闭同步滚动' : '开启同步滚动'}
+                data-tip={syncScroll ? 'Turn off sync scrolling' : 'Turn on sync scrolling'}
+                title={syncScroll ? 'Turn off sync scrolling' : 'Turn on sync scrolling'}
               >
                 <RefreshCw size={13} />
-                <span>同步</span>
+                <span>Sync</span>
               </button>
               <button
                 type="button"
                 className="pane-tool"
-                aria-label="文档大纲"
+                aria-label="Document outline"
                 aria-expanded={outlineOpen}
                 onClick={onToggleOutline}
-                data-tip="文档大纲"
-                title="文档大纲"
+                data-tip="Document outline"
+                title="Document outline"
               >
                 <ListTree size={13} />
-                <span>大纲</span>
+                <span>Outline</span>
               </button>
             </>
           )}

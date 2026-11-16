@@ -33,8 +33,8 @@ export function EditorTabs() {
 
   return (
     <div className="editor-tabs-bar">
-      <div className="editor-tabs" role="tablist" aria-label="打开的文档">
-        {ids.length === 0 ? <span className="editor-tabs-empty">还没有打开的文档</span> : null}
+      <div className="editor-tabs" role="tablist" aria-label="Open documents">
+        {ids.length === 0 ? <span className="editor-tabs-empty">No open documents</span> : null}
         {ids.map((id, index) => {
           const title = titles[index] ?? '';
           const dirty = dirtyFlags[index] ?? false;
@@ -57,11 +57,11 @@ export function EditorTabs() {
             >
               <FileText size={13} className="editor-tab-icon" aria-hidden="true" />
               <span className="editor-tab-title">{title}</span>
-              {dirty ? <span className="editor-tab-dirty" aria-label="未保存" /> : null}
+              {dirty ? <span className="editor-tab-dirty" aria-label="Unsaved" /> : null}
               <button
                 type="button"
                 className="editor-tab-close"
-                aria-label={`关闭 ${title}`}
+                aria-label={`Close ${title}`}
                 onClick={(event) => {
                   event.stopPropagation();
                   requestClose(id, title, dirty);
@@ -77,9 +77,9 @@ export function EditorTabs() {
         type="button"
         className="new-tab-button"
         onClick={newScratchDocument}
-        aria-label="新建空白文档"
-        data-tip="新建空白文档 · ⌘N"
-        title="新建空白文档 · ⌘N"
+        aria-label="New blank document"
+        data-tip="New blank document · ⌘N"
+        title="New blank document · ⌘N"
       >
         <Plus size={15} />
       </button>

@@ -23,7 +23,7 @@ async function exportHtml(request: ExportRequest): Promise<ExportResult> {
   try {
     const pageMarkup = page.page.outerHTML;
     const html = `<!doctype html>
-<html lang="zh-CN" data-theme="${options.theme}">
+<html lang="en" data-theme="${options.theme}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -105,7 +105,7 @@ async function exportPng(request: ExportRequest): Promise<ExportResult> {
   try {
     const canvas = await capturePage(page.page, options);
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-    if (!blob) throw new Error('无法生成长图。');
+    if (!blob) throw new Error('Could not generate the long image.');
     return {
       blob,
       filename: `${safeFilename(title)}.png`,
@@ -140,7 +140,7 @@ async function exportPdf(request: ExportRequest): Promise<ExportResult> {
       slice.width = canvas.width;
       slice.height = sourceHeight;
       const context = slice.getContext('2d');
-      if (!context) throw new Error('无法创建 PDF 页面。');
+      if (!context) throw new Error('Could not create the PDF page.');
       context.fillStyle = options.theme === 'dark' ? '#1c1c1e' : '#ffffff';
       context.fillRect(0, 0, slice.width, slice.height);
       context.drawImage(

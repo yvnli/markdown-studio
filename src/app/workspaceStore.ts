@@ -51,13 +51,13 @@ const welcomeDocument = buildDocumentFromSample(welcomeFile);
 
 const sampleWorkspace: WorkspaceSnapshot = {
   kind: 'sample',
-  name: '示例工作区',
+  name: 'Sample workspace',
   tree: SAMPLE_TREE,
   fileCount: SAMPLE_FILES.length,
   openedAt: Date.now(),
 };
 
-/** 正在读取的文件，避免双击 / 并发调用打开出重复标签。 */
+/** Files currently being read, so double-clicks or concurrent opens don't create duplicate tabs. */
 const openingNodes = new Map<string, Promise<void>>();
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
@@ -79,7 +79,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     if (node.kind !== 'file') return;
     if (!isMarkdownFile(node.path)) {
       throw new Error(
-        '当前文件类型不支持编辑。图片文件请在文件树中点击预览；编辑器仅支持 Markdown 或纯文本文件。',
+        "This file type can't be edited. Click an image in the file tree to preview it; the editor only supports Markdown or plain text files.",
       );
     }
     const state = get();
@@ -96,7 +96,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     }
     if (state.workspace.kind === 'sample') {
       const sample = SAMPLE_FILES.find((file) => file.path === node.path);
-      if (!sample) throw new Error('示例文件不存在。');
+      if (!sample) throw new Error('Sample file not found.');
       const document = buildDocumentFromSample(sample);
       set((current) => ({
         documents: [...current.documents, document],
@@ -122,9 +122,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     const task = (async () => {
       const { content, lastModified } = await workspaceService.readTextFile(node.path);
       set((current) => {
-        // 读取期间切换了工作区：丢弃旧工作区的结果，避免把旧文件带入新工作区。
+        // The workspace changed while reading: drop the old result so stale files don't leak into the new workspace.
         if (current.workspace.openedAt !== workspaceOpenedAt) return current;
-        // 读取期间可能被其它入口打开，二次检查避免重复标签。
+        // Another entry point may have opened it while reading; check again to avoid duplicate tabs.
         const alreadyOpen = current.documents.find(
           (document) => document.path === node.path && document.origin === 'workspace',
         );
@@ -162,7 +162,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     const count = get().documents.filter((document) => document.origin === 'scratch').length + 1;
     const document: DocumentTab = {
       id: createId('doc'),
-      title: `未命名 ${count}`,
+      title: `Untitled ${count}`,
       path: null,
       origin: 'scratch',
       content: '',
@@ -263,12 +263,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         .map((document) => {
           if (document.origin !== 'workspace' || !document.path) return document;
           if (hasPath(treeIndex, document.path)) return document;
-          // 文件已不在工作区中：保留内容，转为可另存的离线草稿，避免静默丢失。
+          // The file is no longer in the workspace: keep its content as an offline draft that can be saved elsewhere.
           return {
             ...document,
             origin: 'scratch' as const,
             path: null,
-            title: `${document.title}（离线草稿）`,
+            title: `${document.title} (offline draft)`,
           };
         });
       const activeDocumentId = documents.some((document) => document.id === state.activeDocumentId)
@@ -339,7 +339,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         if (!isExact && !isNested) return document;
         const nextPath = isExact ? newPath : `${newPath}${document.path.slice(oldPath.length)}`;
         if (state.activeDocumentId === document.id) activeDocumentId = document.id;
-        // id 保持稳定：重命名/移动不应重建编辑器或丢失撤销历史。
+        // Keep the id stable: renaming or moving shouldn't rebuild the editor or lose undo history.
         return {
           ...document,
           path: nextPath,

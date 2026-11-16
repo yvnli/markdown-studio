@@ -17,12 +17,12 @@ export function DialogHost() {
     case 'new-entry':
       return (
         <TextPromptDialog
-          title={dialog.entryKind === 'file' ? '新建 Markdown 文件' : '新建文件夹'}
-          description={`位置：${dialog.parentLabel || '工作区根目录'}`}
-          label="名称"
-          initialValue={dialog.entryKind === 'file' ? '未命名.md' : '新建文件夹'}
-          placeholder={dialog.entryKind === 'file' ? '笔记.md' : '文件夹名称'}
-          confirmLabel="创建"
+          title={dialog.entryKind === 'file' ? 'New Markdown file' : 'New folder'}
+          description={`Location: ${dialog.parentLabel || 'Workspace root'}`}
+          label="Name"
+          initialValue={dialog.entryKind === 'file' ? 'Untitled.md' : 'New folder'}
+          placeholder={dialog.entryKind === 'file' ? 'note.md' : 'Folder name'}
+          confirmLabel="Create"
           onClose={closeDialog}
           onConfirm={(name) => actions.createEntry(dialog.entryKind, dialog.parentPath, name)}
         />
@@ -30,11 +30,11 @@ export function DialogHost() {
     case 'rename-entry':
       return (
         <TextPromptDialog
-          title="重命名"
+          title="Rename"
           description={dialog.node.path}
-          label="新名称"
+          label="New name"
           initialValue={dialog.node.name}
-          confirmLabel="重命名"
+          confirmLabel="Rename"
           onClose={closeDialog}
           onConfirm={(name) => actions.renameEntry(dialog.node, name)}
         />

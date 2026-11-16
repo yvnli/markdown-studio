@@ -12,19 +12,19 @@ describe('SegmentedControl', () => {
     const onChange = vi.fn();
     render(
       <SegmentedControl
-        label="视图"
+        label="View"
         value="split"
         onChange={onChange}
         options={[
-          { value: 'write', label: '写作' },
-          { value: 'split', label: '分屏' },
-          { value: 'preview', label: '预览' },
+          { value: 'write', label: 'Write' },
+          { value: 'split', label: 'Split' },
+          { value: 'preview', label: 'Preview' },
         ]}
       />,
     );
 
-    expect(screen.getByRole('button', { name: '分屏' })).toHaveAttribute('aria-pressed', 'true');
-    await userEvent.click(screen.getByRole('button', { name: '预览' }));
+    expect(screen.getByRole('button', { name: 'Split' })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(screen.getByRole('button', { name: 'Preview' }));
     expect(onChange).toHaveBeenCalledWith('preview');
   });
 });

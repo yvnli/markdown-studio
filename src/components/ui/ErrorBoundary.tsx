@@ -14,7 +14,7 @@ function downloadDraftBackup(): void {
   try {
     const raw = localStorage.getItem(BACKUP_KEY);
     if (!raw) {
-      window.alert('当前没有可恢复的草稿备份。');
+      window.alert('No draft backup to restore.');
       return;
     }
     const blob = new Blob([raw], { type: 'application/json;charset=utf-8' });
@@ -25,12 +25,12 @@ function downloadDraftBackup(): void {
     anchor.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch {
-    window.alert('草稿备份导出失败，请检查浏览器存储权限。');
+    window.alert("Couldn't export the draft backup. Check browser storage permissions.");
   }
 }
 
 /**
- * 根级错误边界：渲染异常时保留可恢复入口，而不是整页白屏。
+ * Root error boundary: keep recovery options available when rendering fails instead of a blank page.
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { error: null };
@@ -50,15 +50,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return (
       <div className="fatal-error" role="alert">
         <div className="fatal-error-card">
-          <h1>界面遇到了一个错误</h1>
-          <p>未保存的内容仍保存在本地草稿备份中。你可以先导出备份，再重新加载应用。</p>
+          <h1>Something went wrong</h1>
+          <p>Unsaved content is still in the local draft backup. Export it before reloading the app.</p>
           <pre className="fatal-error-message">{error.message || String(error)}</pre>
           <div className="fatal-error-actions">
             <button type="button" className="primary-button" onClick={() => window.location.reload()}>
-              重新加载
+              Reload
             </button>
             <button type="button" className="secondary-button" onClick={downloadDraftBackup}>
-              导出草稿备份
+              Export draft backup
             </button>
           </div>
         </div>

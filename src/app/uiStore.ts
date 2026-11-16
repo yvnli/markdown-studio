@@ -12,9 +12,9 @@ export interface RevealRequest extends Required<RevealTarget> {
 
 export interface ImagePreviewRequest {
   id: string;
-  /** Markdown 中的原始 src，或文件树里的工作区路径。 */
+  /** The original src from Markdown, or a workspace path from the file tree. */
   src: string;
-  /** 相对路径的解析基准；工作区文件为 null。 */
+  /** Base for resolving relative paths; null for workspace files. */
   documentPath: string | null;
   title?: string;
   pathLabel?: string;

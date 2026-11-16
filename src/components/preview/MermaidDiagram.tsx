@@ -27,7 +27,7 @@ export function MermaidDiagram({ chart, theme }: MermaidDiagramProps) {
         if (!cancelled) {
           setState({
             svg: '',
-            error: error instanceof Error ? error.message : 'Mermaid 语法无法解析。',
+            error: error instanceof Error ? error.message : 'Could not parse the Mermaid syntax.',
           });
         }
       }
@@ -43,7 +43,7 @@ export function MermaidDiagram({ chart, theme }: MermaidDiagramProps) {
       <div className="mermaid-block mermaid-block-error" role="alert">
         <div className="mermaid-error-title">
           <AlertCircle size={15} aria-hidden="true" />
-          <span>图表语法需要调整</span>
+          <span>Diagram syntax needs attention</span>
         </div>
         <pre className="mermaid-error-message">{state.error}</pre>
         <pre className="mermaid-error-source">
@@ -57,7 +57,7 @@ export function MermaidDiagram({ chart, theme }: MermaidDiagramProps) {
     return (
       <div className="mermaid-block mermaid-block-loading" aria-busy="true">
         <span className="mermaid-loading-dot" />
-        正在绘制图表…
+        Drawing diagram…
       </div>
     );
   }
@@ -66,7 +66,7 @@ export function MermaidDiagram({ chart, theme }: MermaidDiagramProps) {
     <div
       className="mermaid-block"
       role="img"
-      aria-label="Mermaid 图表"
+      aria-label="Mermaid diagram"
       dangerouslySetInnerHTML={{ __html: state.svg }}
     />
   );
