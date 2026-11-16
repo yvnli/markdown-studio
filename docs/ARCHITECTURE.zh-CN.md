@@ -384,7 +384,7 @@ Markdown source
 - **GFM**：表格、任务列表、删除线、自动链接。
 - **数学**：行内公式与块级公式由 `remark-math` 解析，KaTeX 渲染；`katex/dist/katex.min.css` 在应用内加载。预览与导出共用 `services/markdown/katexOptions.ts`，`strict: 'ignore'` 只关闭“数学模式里的 CJK 字符”这类排版提示，真正的语法错误仍输出 `katex-error`。
 - **Mermaid**：`CodeBlock` 检测 `language-mermaid`，动态导入 Mermaid，`securityLevel: 'strict'`，主题黑白。解析失败渲染错误卡片和源码，不抛到页面根节点。
-- **图片**：相对路径由 `WorkspaceService.resolveAssetObjectUrl` 解析为 Blob URL；未连接工作区的粘贴图片以内嵌 Data URL 保存。路径统一经 `resolvePathFrom` 解析（支持 `./`、`../` 与工作区根 `/`），加载失败时展示实际解析路径、格式支持与同名图片提示。
+- **图片**：相对路径由 `WorkspaceService.resolveAssetObjectUrl` 解析——Web 端为 Blob URL，桌面端由主进程返回 Data URL（刚粘贴的图片复用缓存中的 Blob URL）；未连接工作区的粘贴图片以内嵌 Data URL 保存。路径统一经 `resolvePathFrom` 解析（支持 `./`、`../` 与工作区根 `/`），加载失败时展示实际解析路径、格式支持与同名图片提示。
 - **图片查看器**：点击预览图片、本地图片链接或文件树中的图片文件，在预览面板内容区打开 `ImagePreviewPane`，只覆盖预览区（保留应用标题栏、侧栏与编辑区）；支持 5%–800% 缩放、Ctrl/⌘ + 滚轮锚点缩放、拖拽平移、适应窗口与 1:1。图片格式白名单为 PNG / JPEG / GIF / WebP / SVG / AVIF / BMP / ICO / APNG。写作视图下打开图片会自动切到分屏，确保图片出现在预览区而不是弹窗。
 - **预览缩放**：`previewZoom` 持久化在偏好中，范围 50%–300%；通过 CSS `zoom` 缩放整篇排版，并反向补偿阅读栏宽度。
 - **链接**：外部链接 `_blank`；`*.md` 相对链接通过 `onOpenPath` 打开工作区对应文件，指向工作区图片的本地链接交给图片查看器；`#hash` 在预览内滚动。
@@ -478,26 +478,39 @@ window.markdownStudioDesktop 存在？
 
 ```mermaid
 sequenceDiagram
-  participant CM as CodeMirror
-  participant App as EditorPane
-  participant Actions as useWorkspaceActions
+  participant CM as MarkdownEditor (CodeMirror)
+  participant Editor as EditorPane
+  participant Actions as useDocumentActions
   participant FS as WorkspaceService
-  participant Preview as Preview
-  CM->>App: paste(event) 图片 File
-  App->>Actions: pasteImage(file)
+  participant Preview as MarkdownImage
+  CM->>CM: paste 或 drop，取第一个 image/* File，preventDefault
+  CM->>Editor: onPasteImage(file)
+  Editor->>Actions: pasteImage(file, documentId)
+  Actions->>Actions: findDocument(documentId)
   alt 工作区已连接
-    Actions->>FS: saveImage(file, docPath, imageDirectory)
-    FS-->>Actions: assets/image_xxx.png + Blob URL
-    Actions-->>CM: ![粘贴的图片](../assets/image_xxx.png)
-    Actions->>Actions: refreshWorkspace()
+    Actions->>FS: saveImage(file, document.path, imageDirectory, file.type)
+    FS->>FS: 把 image_time_rand.ext 写入图片目录
+    FS-->>Actions: assetPath、relativePath、Blob objectUrl
+    Actions->>Actions: refreshWorkspace({ silent: true })
+    Actions-->>Editor: ![Pasted image](relativePath)
   else 未连接工作区
-    Actions-->>CM: ![粘贴的图片](data:image/png;base64,...)
+    Actions->>Actions: file.size 超过 4 MB 时放弃
+    Actions-->>Editor: ![Pasted image](data URL, base64)
   end
-  Preview->>FS: resolveAssetObjectUrl(docPath, src)
-  FS-->>Preview: Blob URL
+  Editor-->>CM: markdown 或 null
+  CM->>CM: 非空时 insertImageMarkdown(view, markdown)
+  Preview->>FS: resolveAssetObjectUrl(document.path, src)
+  FS-->>Preview: Web 返回 Blob URL，桌面端返回 Data URL，失败时原样返回 src
 ```
 
-相对路径以当前文档目录为基准计算（`relativeAssetPath`），文档在子目录时会正确生成 `../assets/...`。
+- **入口**：paste 与 drop 都取第一个 `image/*` 项，命中后立即 `preventDefault()`；paste 路径在一次保存未结束时忽略第二次粘贴（`pasteBusyRef`）。`pasteImage(file, documentId)` 自己按 id 查文档（该 action 经 `useWorkspaceActions` facade 暴露），找不到时返回 `null`、不插入任何内容；插入成功会替换当前选区，光标停在图片之后。
+- **已连接工作区**：`saveImage` 写入 Blob 并返回 `{ assetPath, relativePath, objectUrl }`。插入的 Markdown 使用 `relativePath`，不是写死路径；`objectUrl` 只缓存进 service 供预览复用。随后 `refreshWorkspace({ silent: true })` 重新扫描（与 9.3 共用 single-flight），新文件出现在文件树中且不弹 Toast；写入失败会弹错误 Toast 且不插入。
+- **未连接工作区**：图片以内嵌 Data URL 保存，上限 4 MB（超出提示 “Image too large”）；不写文件，也不触发重扫。
+- **命名**：扩展名由粘贴内容的 MIME 决定 —— `jpg` / `svg` / `gif` / `webp` / `avif` / `bmp`，其余按 `png`；文件名为 `image_<时间戳>_<随机串>.<扩展名>`，写入设置中的 `imageDirectory`（默认 `assets`）。Web 端用 `sanitizeAssetDirectory` 清洗目录（去掉开头的 `/` 以及 `.`、`..`、空段，兜底回 `assets`）；桌面端渲染层只做归一化，最终由主进程二次校验，并额外要求扩展名在受支持图片列表中、路径不得逃出工作区。
+
+相对路径以当前文档目录为基准计算：`getDirName(document.path)` 配合 `relativePath`（桌面 service 使用的公共工具；Web service 里是等价的私有 `relativeTo`）。工作区根目录下的文档得到 `assets/image_x.png`，`notes/` 下的文档得到 `../assets/image_x.png`，没有路径的临时文档（scratch）得到相对工作区根的形式。
+
+**预览**：`MarkdownImage` 对每个 `src` 调用 `resolveAssetObjectUrl(documentPath, src)`。`http(s):`、`data:`、`blob:` 原样透传；其余经 `resolvePathFrom(documentDir, src)` 解析，因此 `./`、`../` 与以 `/assets/...` 锚定工作区根都可用。Web 端返回缓存或新建的 Blob URL，文件缺失时回退为原始 `src`；桌面端由主进程返回 Data URL（读取上限 25 MB，仅限已知图片扩展名），失败同样回退 `src`。插入图片对话框与导出（`assetDataUrl`）也走这套解析。
 
 ### 9.5 Electron 桌面封装
 

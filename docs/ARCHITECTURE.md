@@ -384,7 +384,7 @@ Markdown source
 - **GFM**: tables, task lists, strikethrough, autolinks.
 - **Math**: inline and block formulas are parsed by `remark-math` and rendered by KaTeX; `katex/dist/katex.min.css` is loaded inside the app. Preview and export share `services/markdown/katexOptions.ts`; `strict: 'ignore'` only silences typesetting hints such as "CJK characters in math mode", while genuine syntax errors still emit `katex-error`.
 - **Mermaid**: `CodeBlock` detects `language-mermaid`, dynamically imports Mermaid, uses `securityLevel: 'strict'`, with a black-and-white theme. On parse failure it renders an error card plus the source instead of throwing to the page root.
-- **Images**: relative paths are resolved to Blob URLs by `WorkspaceService.resolveAssetObjectUrl`; pasted images with no connected workspace are stored as inline Data URLs. Paths are uniformly resolved via `resolvePathFrom` (supporting `./`, `../`, and the workspace root `/`); on load failure it shows the actually resolved path, the supported formats, and hints for same-name images.
+- **Images**: relative paths are resolved by `WorkspaceService.resolveAssetObjectUrl` — a Blob URL on Web, a Data URL from the main process on Desktop (a freshly pasted image reuses its cached Blob URL); pasted images with no connected workspace are stored as inline Data URLs. Paths are uniformly resolved via `resolvePathFrom` (supporting `./`, `../`, and the workspace root `/`); on load failure it shows the actually resolved path, the supported formats, and hints for same-name images.
 - **Image viewer**: clicking a preview image, a local image link, or an image file in the file tree opens `ImagePreviewPane` in the content area of the preview panel, covering only the preview pane (the app title bar, sidebar, and editor area stay visible); it supports 5%–800% zoom, Ctrl/⌘ + wheel anchored zoom, drag-to-pan, fit to window, and 1:1. The image format allowlist is PNG / JPEG / GIF / WebP / SVG / AVIF / BMP / ICO / APNG. Opening an image in writing view automatically switches to split view, ensuring the image appears in the preview pane rather than in a modal.
 - **Preview zoom**: `previewZoom` is persisted in preferences, range 50%–300%; CSS `zoom` scales the whole typeset page, with the reading column width compensated in reverse.
 - **Links**: external links open with `_blank`; relative `*.md` links open the corresponding workspace file via `onOpenPath`, local links pointing at workspace images are handed to the image viewer; `#hash` scrolls within the preview.
@@ -478,26 +478,39 @@ Limits:
 
 ```mermaid
 sequenceDiagram
-  participant CM as CodeMirror
-  participant App as EditorPane
-  participant Actions as useWorkspaceActions
+  participant CM as MarkdownEditor (CodeMirror)
+  participant Editor as EditorPane
+  participant Actions as useDocumentActions
   participant FS as WorkspaceService
-  participant Preview as Preview
-  CM->>App: paste(event) image File
-  App->>Actions: pasteImage(file)
+  participant Preview as MarkdownImage
+  CM->>CM: paste or drop, take the first image/* File, preventDefault
+  CM->>Editor: onPasteImage(file)
+  Editor->>Actions: pasteImage(file, documentId)
+  Actions->>Actions: findDocument(documentId)
   alt workspace connected
-    Actions->>FS: saveImage(file, docPath, imageDirectory)
-    FS-->>Actions: assets/image_xxx.png + Blob URL
-    Actions-->>CM: ![Pasted image](../assets/image_xxx.png)
-    Actions->>Actions: refreshWorkspace()
+    Actions->>FS: saveImage(file, document.path, imageDirectory, file.type)
+    FS->>FS: write image_time_rand.ext into the asset directory
+    FS-->>Actions: assetPath, relativePath, Blob objectUrl
+    Actions->>Actions: refreshWorkspace({ silent: true })
+    Actions-->>Editor: ![Pasted image](relativePath)
   else no workspace connected
-    Actions-->>CM: ![Pasted image](data:image/png;base64,...)
+    Actions->>Actions: stop when file.size exceeds 4 MB
+    Actions-->>Editor: ![Pasted image](data URL, base64)
   end
-  Preview->>FS: resolveAssetObjectUrl(docPath, src)
-  FS-->>Preview: Blob URL
+  Editor-->>CM: markdown or null
+  CM->>CM: insertImageMarkdown(view, markdown) when non-null
+  Preview->>FS: resolveAssetObjectUrl(document.path, src)
+  FS-->>Preview: Blob URL on Web, Data URL on Desktop, original src on failure
 ```
 
-Relative paths are computed against the current document's directory (`relativeAssetPath`), so documents in a subdirectory correctly produce `../assets/...`.
+- **Entry points**: paste and drop both take the first `image/*` item and `preventDefault()` once one exists; the paste path ignores a second paste while the first is still saving (`pasteBusyRef`). `pasteImage(file, documentId)` looks the document up itself (the action is exposed through the `useWorkspaceActions` facade), so an unknown id returns `null` and nothing is inserted; a successful insert replaces the current selection and leaves the cursor after the image.
+- **Workspace connected**: `saveImage` writes the blob and returns `{ assetPath, relativePath, objectUrl }`. The inserted Markdown uses `relativePath`, not a hardcoded path; `objectUrl` is only cached in the service for preview reuse. `refreshWorkspace({ silent: true })` then rescans (single-flight with 9.3) so the new asset appears in the tree without a toast. A write failure shows an error toast and inserts nothing.
+- **No workspace connected**: the image is embedded as a Data URL, capped at 4 MB (larger files get an "Image too large" toast); nothing is written and no rescan runs.
+- **Naming**: the extension comes from the pasted MIME type — `jpg` / `svg` / `gif` / `webp` / `avif` / `bmp`, otherwise `png` — and the name is `image_<timestamp>_<random>.<ext>` under the configured `imageDirectory` (default `assets`). Web sanitizes the directory with `sanitizeAssetDirectory` (a leading `/` is dropped, as are `.`, `..` and empty segments, falling back to `assets`); Desktop only normalizes it in the renderer and validates it again in the main process, which also enforces a known image extension and rejects paths escaping the workspace.
+
+Relative paths are computed against the current document's directory: `getDirName(document.path)` plus `relativePath` (the shared utility used by the Desktop service; the Web service has an equivalent private `relativeTo`). A document at the workspace root gets `assets/image_x.png`, a document in `notes/` gets `../assets/image_x.png`, and a scratch document with no path gets the workspace-root form.
+
+**Preview**: `MarkdownImage` resolves each `src` through `resolveAssetObjectUrl(documentPath, src)`. `http(s):`, `data:` and `blob:` sources pass through unchanged. Everything else is resolved with `resolvePathFrom(documentDir, src)`, so `./`, `../` and a root-anchored `/assets/...` all work. On Web the result is a cached or freshly created Blob URL, falling back to the original `src` when the file is missing; on Desktop the main process returns a Data URL (25 MB read cap, known image extensions only), also falling back to `src`. The same resolution feeds the insert-image dialog and export (`assetDataUrl`).
 
 ### 9.5 Electron Desktop Packaging
 
