@@ -1,0 +1,502 @@
+/* ------------------------------------------------------------------
+ * 图片预览：只覆盖 Markdown 预览面板的内容区，不占满整个应用窗口
+ * ------------------------------------------------------------------ */
+
+.image-preview-pane {
+  position: absolute;
+  z-index: 35;
+  inset: 32px 0 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--preview-bg);
+  color: var(--ink);
+  animation: fade-in 140ms ease both;
+}
+
+.image-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 9px 12px;
+  border-bottom: 0.5px solid var(--line-faint);
+  background: var(--surface-soft);
+}
+
+.image-preview-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 7px;
+  background: var(--surface-sunk);
+  color: var(--muted);
+}
+
+.image-preview-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.image-preview-copy strong {
+  overflow: hidden;
+  color: var(--ink-strong);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-preview-copy span {
+  overflow: hidden;
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-preview-canvas {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--preview-bg);
+  cursor: grab;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.image-preview-canvas.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.image-preview-canvas::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.image-preview-canvas::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: var(--line-strong);
+  background-clip: content-box;
+}
+
+.image-preview-stage {
+  display: flex;
+  flex: 0 0 auto;
+  margin: auto;
+  padding: 24px;
+}
+
+.image-preview-stage img {
+  display: block;
+  max-width: none;
+  border-radius: 6px;
+  /* 透明图片用低对比棋盘格表示透明区域。 */
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(45deg, var(--line-faint) 25%, transparent 25%, transparent 75%, var(--line-faint) 75%),
+    linear-gradient(45deg, var(--line-faint) 25%, transparent 25%, transparent 75%, var(--line-faint) 75%);
+  background-position: 0 0, 9px 9px;
+  background-size: 18px 18px;
+  box-shadow: var(--shadow-md);
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: opacity 140ms ease;
+}
+
+.image-preview-status {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  padding: 20px;
+  place-items: center;
+  pointer-events: none;
+}
+
+.image-preview-status-card {
+  max-width: 440px;
+  padding: 20px 22px;
+  border: 0.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--muted);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  pointer-events: auto;
+}
+
+.image-preview-status-card > svg {
+  margin-bottom: 9px;
+  color: var(--muted);
+}
+
+.image-preview-status-card strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--ink-strong);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.image-preview-status-card p {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.65;
+}
+
+.image-preview-status-card code {
+  display: block;
+  margin-top: 9px;
+  padding: 5px 7px;
+  overflow-wrap: anywhere;
+  border-radius: 6px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.image-preview-status-hint {
+  display: block;
+  margin-top: 8px;
+  color: var(--faint);
+  font-size: 9.5px;
+  line-height: 1.6;
+}
+
+.image-preview-status-action {
+  margin-top: 11px;
+  padding: 5px 9px;
+  border: 0.5px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 10px;
+}
+
+.image-preview-status-action:hover {
+  background: var(--hover);
+}
+
+.image-preview-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 8px 10px 10px;
+  border-top: 0.5px solid var(--line-faint);
+  background: var(--surface-soft);
+}
+
+.image-preview-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  border-radius: 7px;
+  background: var(--accent-soft);
+}
+
+.image-preview-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.image-preview-tool:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.image-preview-tool:disabled {
+  opacity: 0.38;
+}
+
+.image-preview-zoom .image-preview-tool {
+  width: 24px;
+  padding: 0;
+  justify-content: center;
+}
+
+.image-preview-tool.image-preview-actual {
+  min-width: 36px;
+  padding: 0 7px;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+}
+
+.image-preview-zoom-value {
+  min-width: 42px;
+  height: 26px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.image-preview-zoom-value:hover {
+  background: var(--hover);
+}
+
+.image-preview-divider {
+  width: 0.5px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--line);
+}
+
+.image-preview-meta {
+  min-width: 0;
+  margin-left: auto;
+  overflow: hidden;
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------
+ * 插入图片对话框：按路径给出提示与候选
+ * ------------------------------------------------------------------ */
+
+.image-path-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: -2px 0 13px;
+  padding: 9px 11px;
+  border: 0.5px solid var(--line-faint);
+  border-left: 2px solid var(--line-strong);
+  border-radius: 7px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.55;
+}
+
+.image-path-hint > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--muted);
+}
+
+.image-path-hint-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.image-path-hint-title {
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.image-path-hint-detail {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+}
+
+.image-path-hint-tip {
+  color: var(--faint);
+  font-size: 10px;
+}
+
+.image-path-hint.tone-success {
+  border-left-color: var(--ink-strong);
+  background: var(--accent-softer);
+}
+
+.image-path-hint.tone-warning {
+  border-left-style: dashed;
+}
+
+.image-path-hint.tone-error {
+  border-left-color: var(--ink-strong);
+  border-left-style: solid;
+  background: var(--accent-soft);
+}
+
+.image-path-hint.tone-error > svg,
+.image-path-hint.tone-error .image-path-hint-title {
+  color: var(--ink-strong);
+}
+
+.image-insert-thumb {
+  display: grid;
+  width: 100%;
+  max-height: 138px;
+  margin-bottom: 13px;
+  padding: 9px;
+  overflow: hidden;
+  place-items: center;
+  border: 0.5px solid var(--line-faint);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.image-insert-thumb img {
+  display: block;
+  max-width: 100%;
+  max-height: 120px;
+  border-radius: 5px;
+}
+
+.image-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.image-suggestions-label {
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.image-suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 146px;
+  overflow-y: auto;
+}
+
+.image-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0.5px solid var(--line-faint);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+
+.image-suggestion:hover {
+  background: var(--hover);
+}
+
+.image-suggestion svg {
+  flex: 0 0 auto;
+  color: var(--faint);
+}
+
+.image-suggestion-name {
+  overflow: hidden;
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-suggestion-path {
+  min-width: 0;
+  margin-left: auto;
+  overflow: hidden;
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-insert-measure {
+  margin: -7px 0 12px;
+  color: var(--faint);
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
+@media print {
+  .image-preview-pane {
+    display: none !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .image-preview-header {
+    gap: 10px;
+    padding: 9px 11px;
+  }
+
+  .image-preview-copy span {
+    display: none;
+  }
+
+  .image-preview-stage {
+    padding: 14px;
+  }
+
+  .image-preview-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px 11px;
+  }
+
+  .image-preview-tool span {
+    display: none;
+  }
+
+  .image-preview-tool {
+    width: 28px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .image-preview-tool.image-preview-actual {
+    width: auto;
+    min-width: 38px;
+    padding: 0 8px;
+  }
+
+  .image-preview-actual span {
+    display: inline;
+  }
+
+  .image-preview-meta {
+    display: none;
+  }
+
+  .image-preview-status {
+    padding: 16px;
+  }
+
+  .image-preview-status-card {
+    padding: 18px;
+  }
+}
