@@ -1,99 +1,101 @@
-# Markdown studio · 项目架构文档
+# Markdown studio · Architecture Guide
 
-- 版本：v2.0.0
-- 更新时间：2026-11-10
-- 技术基线：React 19 · TypeScript 6 · Vite 8 · CodeMirror 6 · Electron 45
-- 桌面交付：macOS Apple Silicon `.app` / `.dmg`（ad-hoc 签名）；Windows x64 NSIS 安装版 / 便携版
-- 对应 PRD：Markdown 编辑器产品需求文档 v1.0.0
-- 配套说明：[README](../README.md)
+**English** · [中文](./ARCHITECTURE.zh-CN.md)
 
----
-
-## 1. 产品与架构目标
-
-Markdown studio 是一个 **local-first（本地优先）** 的 Markdown 写作工作台。Markdown 源文本是唯一事实来源；编辑、预览、搜索、导出、文件写回都围绕这份源文本工作。
-
-架构目标：
-
-1. **编辑体验优先**：编辑器不能因为实时预览、统计或文件同步而掉帧。
-2. **工程可维护**：UI、状态、领域服务、浏览器基础设施分层；业务能力可单测。
-3. **本地优先**：不引入业务后端。文件直接写入用户选择的本地目录，草稿恢复只保存在浏览器本地。
-4. **渐进增强**：支持 File System Access API 的浏览器获得完整本地工作区能力；其他浏览器仍可编辑草稿。
-5. **可扩展**：新增渲染语法、导出格式或文件系统适配器时，不需要改动编辑器核心。
-
-非目标（v2.0.0）：
-
-- 实时多人协作、账号体系和云端同步。
-- 在浏览器沙箱内突破权限写入当前工作区以外的任意绝对路径。
-- 对 PDF 做服务端排版或对 Word 做逐像素还原。
+- Version: v2.0.0
+- Last updated: 2026-11-10
+- Tech baseline: React 19 · TypeScript 6 · Vite 8 · CodeMirror 6 · Electron 45
+- Desktop delivery: macOS Apple Silicon `.app` / `.dmg` (ad-hoc signed); Windows x64 NSIS installer / portable
+- Corresponding PRD: Markdown Editor Product Requirements Document v1.0.0
+- Companion doc: [README](../README.md)
 
 ---
 
-## 2. 技术栈
+## 1. Product and Architecture Goals
 
-| 层 | 技术 | 选择原因 |
+Markdown studio is a **local-first** Markdown writing workbench. The Markdown source text is the single source of truth; editing, preview, search, export, and file write-back all work around this source text.
+
+Architecture goals:
+
+1. **Editing experience first**: the editor must not drop frames because of live preview, statistics, or file sync.
+2. **Maintainable engineering**: UI, state, domain services, and browser infrastructure are layered; business capabilities are unit-testable.
+3. **Local-first**: no business backend is introduced. Files are written directly to the local directory the user chooses, and draft recovery is stored only in the browser.
+4. **Progressive enhancement**: browsers that support the File System Access API get the full local workspace capability; other browsers can still edit drafts.
+5. **Extensible**: adding rendering syntax, export formats, or file system adapters does not require changing the editor core.
+
+Non-goals (v2.0.0):
+
+- Real-time multi-user collaboration, accounts, and cloud sync.
+- Breaking out of the browser sandbox to write to arbitrary absolute paths outside the current workspace.
+- Server-side layout for PDF, or pixel-by-pixel fidelity for Word.
+
+---
+
+## 2. Tech Stack
+
+| Layer | Technology | Why this choice |
 | --- | --- | --- |
-| UI | React 19 + TypeScript | 组件化、类型约束、React 生态 |
-| 构建 | Vite 8 | 快速开发、ESM 构建、按需代码分割 |
-| 桌面容器 | Electron 45 + electron-builder 26 | 复用 Chromium 渲染与 React 代码，提供原生窗口和文件系统桥接；NSIS 安装器跨平台构建 |
-| 状态 | Zustand 5 | 轻量、selector 粒度细、适合编辑器高频更新 |
-| 源码编辑器 | CodeMirror 6 | 大文件性能、成熟的 Markdown 解析、可注入装饰 |
-| Markdown 渲染 | react-markdown 10 + remark/rehype | React 组件化渲染、可插拔语法 |
-| 数学 | remark-math + KaTeX | 标准 LaTeX 解析与高质量排版 |
-| 图表 | Mermaid 12（动态导入） | 流程图、时序图、甘特图等 |
-| 代码高亮 | highlight.js（common build） | 客户端轻量高亮 |
-| 本地文件（Web） | File System Access API + IndexedDB | 用户授权后直接读写本地目录，句柄持久化 |
-| 本地文件（桌面） | Electron IPC + Node `fs/promises` | 原生目录对话框、直接读写本地文件、记住上次工作区 |
-| 工作区搜索 | Web Worker + 内存索引 | 查询不阻塞 UI；与 1000+ 文件工作区解耦 |
-| 文件内查找 | CodeMirror StateField + findCore | 与工作区搜索共享匹配语义，编辑器内高亮、跳转与替换 |
-| 预览内查找 | CSS Custom Highlight API + DOM Range | 直接搜索渲染结果，不切回编辑视图、不修改 React DOM |
-| PDF / 长图 | jsPDF + html2canvas（动态导入） | 纯前端导出，不依赖服务端 |
-| DOCX | docx（动态导入） | 浏览器生成 Open XML 文档 |
-| 测试 | Vitest + Testing Library | 快速单测 + 轻量 DOM 测试 |
+| UI | React 19 + TypeScript | Componentization, type constraints, React ecosystem |
+| Build | Vite 8 | Fast development, ESM build, on-demand code splitting |
+| Desktop container | Electron 45 + electron-builder 26 | Reuses Chromium rendering and the React code, provides native windows and a file system bridge; NSIS installer built cross-platform |
+| State | Zustand 5 | Lightweight, fine-grained selectors, suited to high-frequency editor updates |
+| Source editor | CodeMirror 6 | Large-file performance, mature Markdown parsing, injectable decorations |
+| Markdown rendering | react-markdown 10 + remark/rehype | Component-based React rendering, pluggable syntax |
+| Math | remark-math + KaTeX | Standard LaTeX parsing and high-quality typesetting |
+| Diagrams | Mermaid 12 (dynamic import) | Flowcharts, sequence diagrams, Gantt charts, etc. |
+| Code highlighting | highlight.js (common build) | Lightweight client-side highlighting |
+| Local files (Web) | File System Access API + IndexedDB | Read and write a local directory directly after user authorization, with handles persisted |
+| Local files (desktop) | Electron IPC + Node `fs/promises` | Native directory dialog, direct read/write of local files, remembers the last workspace |
+| Workspace search | Web Worker + in-memory index | Queries do not block the UI; decoupled from 1000+ file workspaces |
+| Find-in-file | CodeMirror StateField + findCore | Shares matching semantics with workspace search; in-editor highlight, jump, and replace |
+| Find-in-preview | CSS Custom Highlight API + DOM Range | Searches the rendered result directly, without switching back to the edit view or mutating the React DOM |
+| PDF / long image | jsPDF + html2canvas (dynamic import) | Pure front-end export, no server dependency |
+| DOCX | docx (dynamic import) | Generates Open XML documents in the browser |
+| Testing | Vitest + Testing Library | Fast unit tests + lightweight DOM tests |
 
-> 除应用自身外，没有网络 API 调用。导出的独立 HTML 会引用 KaTeX CDN 样式；应用运行本身离线可用。
+> Apart from the application itself, there are no network API calls. Exported standalone HTML references KaTeX CDN styles; the application itself runs offline.
 
 ---
 
-## 3. 总体架构
+## 3. Overall Architecture
 
 ```mermaid
 flowchart TB
-  subgraph Presentation[表现层 · React]
+  subgraph Presentation[Presentation layer · React]
     AppBar[AppBar / Sidebar / Tabs]
     EditorUI[EditorPane + CodeMirror]
     PreviewUI[PreviewPane + Markdown/KaTeX/Mermaid]
     Dialogs[Settings / Export / File Dialogs]
   end
 
-  subgraph State[状态层 · Zustand]
-    WorkspaceStore[workspaceStore\n文档 / 标签 / 工作区快照]
-    PrefStore[preferencesStore\n主题 / 视图 / 字号]
-    UIStore[uiStore\n弹窗 / Toast / 侧栏状态]
+  subgraph State[State layer · Zustand]
+    WorkspaceStore[workspaceStore\ndocuments / tabs / workspace snapshot]
+    PrefStore[preferencesStore\ntheme / view / font size]
+    UIStore[uiStore\ndialogs / Toast / sidebar state]
   end
 
-  subgraph Domain[领域与编排层]
-    EditorCommands[编辑器命令与实时装饰]
-    WorkspaceActions[工作区动作编排]
-    SearchCore[搜索核心 + Worker]
-    ExportPipeline[导出流水线]
+  subgraph Domain[Domain and orchestration layer]
+    EditorCommands[Editor commands and live decorations]
+    WorkspaceActions[Workspace action orchestration]
+    SearchCore[Search core + Worker]
+    ExportPipeline[Export pipeline]
     MarkdownPipeline[Markdown / KaTeX / Mermaid]
   end
 
-  subgraph Desktop[桌面容器 · Electron]
+  subgraph Desktop[Desktop container · Electron]
     Main[main.cjs
-窗口 / 菜单 / 原生对话框]
+window / menu / native dialogs]
     Preload[preload.cjs
 contextBridge]
     NativeFS[workspaceFs.cjs
-Node fs 原生文件系统]
+Node fs native file system]
   end
 
-  subgraph Infrastructure[浏览器基础设施]
-    FSAccess[File System Access 服务]
-    HandleDB[IndexedDB 工作区句柄]
-    Session[IndexedDB 会话 + localStorage 备份]
-    Download[Blob 下载 / 剪贴板]
+  subgraph Infrastructure[Browser infrastructure]
+    FSAccess[File System Access service]
+    HandleDB[IndexedDB workspace handle]
+    Session[IndexedDB session + localStorage backup]
+    Download[Blob download / clipboard]
   end
 
   AppBar --> State
@@ -105,93 +107,94 @@ Node fs 原生文件系统]
   Domain --> Preload
   Preload --> Main
   Main --> NativeFS
-  NativeFS --> FileSystem[(本地文件夹)]
+  NativeFS --> FileSystem[(Local folder)]
   FSAccess --> FileSystem
   SearchCore --> Worker[(Web Worker)]
   ExportPipeline --> Download
 ```
 
-设计原则：
+Design principles:
 
-- **Markdown 为单一事实来源**。预览是从源文本派生的只读视图，不保存一份富文本状态。
-- **非 React 高频对象隔离**。CodeMirror 的 `EditorView` 存在组件 ref 中，不进入 Zustand；Zustand 只保存文档内容和轻量元数据。
-- **重型依赖延迟加载**。Mermaid、jsPDF、html2canvas、docx 使用动态 `import()`，不进入首屏关键路径。
-- **跨浏览器能力通过服务层抽象**。UI 不直接调用 `showDirectoryPicker`；`workspaceService` 在 Web 下使用 File System Access API，在 Electron 下使用 preload 暴露的原生桥。
-- **桌面桥最小权限**。渲染进程保持 `contextIsolation: true`、`nodeIntegration: false`；只暴露工作区文件操作，所有相对路径在主进程再次校验，不能逃逸当前工作区。
+- **Markdown as the single source of truth**. Preview is a read-only view derived from the source text; no separate rich-text state is stored.
+- **Isolation of high-frequency non-React objects**. CodeMirror's `EditorView` lives in a component ref and never enters Zustand; Zustand stores only document content and lightweight metadata.
+- **Lazy loading of heavy dependencies**. Mermaid, jsPDF, html2canvas, and docx use dynamic `import()` and stay off the first-screen critical path.
+- **Cross-browser capabilities abstracted behind a service layer**. The UI never calls `showDirectoryPicker` directly; `workspaceService` uses the File System Access API on the Web and the native bridge exposed by preload in Electron.
+- **Least privilege for the desktop bridge**. The renderer keeps `contextIsolation: true` and `nodeIntegration: false`; it exposes only workspace file operations, and every relative path is re-validated in the main process so it cannot escape the current workspace.
 
 ---
 
-## 4. 目录结构
+## 4. Directory Structure
 
 ```text
 .
 ├── src/
 │   ├── app/
-│   │   ├── workspaceStore.ts       # 文档、标签、工作区快照
-│   │   ├── preferencesStore.ts     # 持久化偏好（Zustand persist）
-│   │   └── uiStore.ts              # 弹窗、Toast、侧栏、大纲
+│   │   ├── workspaceStore.ts       # documents, tabs, workspace snapshot
+│   │   ├── preferencesStore.ts     # persisted preferences (Zustand persist)
+│   │   └── uiStore.ts              # dialogs, Toast, sidebar, outline
 │   ├── components/
-│   │   ├── layout/                 # AppBar、StatusBar
-│   │   ├── sidebar/                # Sidebar、FileTree、SearchPanel
-│   │   ├── search/                 # FindBar：编辑器 / 预览共用的查找条
+│   │   ├── layout/                 # AppBar, StatusBar
+│   │   ├── sidebar/                # Sidebar, FileTree, SearchPanel
+│   │   ├── search/                 # FindBar: find bar shared by editor / preview
 │   │   ├── editor/
-│   │   │   ├── MarkdownEditor.tsx  # CodeMirror ↔ React 边界
-│   │   │   ├── livePreview.ts      # 语法隐藏 / 实时排版 ViewPlugin
-│   │   │   ├── EditorFindWidget.tsx # 文件内查找 / 替换浮层
-│   │   │   ├── searchHighlight.ts  # 查找命中 / 定位闪烁装饰
-│   │   │   ├── editorTheme.ts      # 编辑器视觉主题
-│   │   │   └── commands.ts         # Headings、Bold、Table、Math 等命令
+│   │   │   ├── MarkdownEditor.tsx  # CodeMirror ↔ React boundary
+│   │   │   ├── livePreview.ts      # syntax hiding / live typesetting ViewPlugin
+│   │   │   ├── EditorFindWidget.tsx # find-in-file / replace overlay
+│   │   │   ├── searchHighlight.ts  # find match / reveal flash decorations
+│   │   │   ├── editorTheme.ts      # editor visual theme
+│   │   │   └── commands.ts         # Heading, Bold, Table, Math and other commands
 │   │   ├── preview/
-│   │   │   ├── MarkdownPreview.tsx # react-markdown 入口
-│   │   │   ├── PreviewFindWidget.tsx # 预览内查找状态与导航
+│   │   │   ├── MarkdownPreview.tsx # react-markdown entry
+│   │   │   ├── PreviewFindWidget.tsx # find-in-preview state and navigation
 │   │   │   ├── previewSearchHighlight.ts # CSS Custom Highlight API
-│   │   │   ├── CodeBlock.tsx       # 代码高亮 / 复制
-│   │   │   ├── MermaidDiagram.tsx  # 图表与错误边界
-│   │   │   ├── MarkdownImage.tsx   # 本地相对资源解析、路径提示、点击查看大图
-│   │   │   ├── PreviewZoomControls.tsx # 预览缩放控件
-│   │   │   ├── ImagePreviewPane.tsx # 预览区内的图片查看器：缩放 / 拖拽 / 适应窗口
+│   │   │   ├── CodeBlock.tsx       # code highlighting / copy
+│   │   │   ├── MermaidDiagram.tsx  # diagrams and error boundary
+│   │   │   ├── MarkdownImage.tsx   # local relative asset resolution, path hints, click to view full size
+│   │   │   ├── PreviewZoomControls.tsx # preview zoom controls
+│   │   │   ├── ImagePreviewPane.tsx # image viewer inside the preview pane: zoom / pan / fit to window
 │   │   │   └── OutlinePanel.tsx
-│   │   ├── dialogs/                # 文件、设置、导出、插入图片对话框
-│   │   └── ui/                     # 基础控件
-│   ├── domain/                     # 文档 dirty、树索引、图片路径分析、缩放计算
+│   │   ├── dialogs/                # file, settings, export, insert-image dialogs
+│   │   └── ui/                     # base controls
+│   ├── domain/                     # document dirty, tree index, image path analysis, zoom computation
 │   ├── hooks/
-│   │   ├── useWorkspaceActions.ts  # 动作组合入口
+│   │   ├── useWorkspaceActions.ts  # action composition entry
 │   │   ├── workspace/
-│   │   │   ├── useWorkspaceLifecycle.ts # 打开 / 恢复 / 刷新 / 轮询
-│   │   │   ├── useDocumentActions.ts    # 保存 / 打开 / 粘贴图片
-│   │   │   ├── useFileTreeActions.ts    # 新建 / 重命名 / 删除 / 移动
-│   │   │   └── workspaceHelpers.ts      # 切换前落盘、吸附工作区
-│   │   ├── useSessionPersistence.ts# 会话草稿恢复
+│   │   │   ├── useWorkspaceLifecycle.ts # open / restore / refresh / poll
+│   │   │   ├── useDocumentActions.ts    # save / open / paste image
+│   │   │   ├── useFileTreeActions.ts    # create / rename / delete / move
+│   │   │   └── workspaceHelpers.ts      # flush before switching, snap to workspace
+│   │   ├── useSessionPersistence.ts# session draft recovery
 │   │   ├── useGlobalHotkeys.ts
 │   │   ├── useResolvedTheme.ts
 │   │   └── useMediaQuery.ts
 │   ├── services/
-│   │   ├── file-system/            # Web/桌面双后端及选择入口
-│   │   │   ├── workspaceService.ts # File System Access（Web）
-│   │   │   ├── desktopWorkspaceService.ts # Electron 桥客户端
-│   │   │   └── index.ts            # 运行时选择 service
-│   │   ├── search/                 # 工作区搜索、文件内 / 预览内查找 core、Worker client、测试
-│   │   ├── markdown/               # 统计、大纲、Mermaid 主题
+│   │   ├── file-system/            # Web/desktop dual backends and selection entry
+│   │   │   ├── workspaceService.ts # File System Access (Web)
+│   │   │   ├── desktopWorkspaceService.ts # Electron bridge client
+│   │   │   └── index.ts            # runtime service selection
+│   │   ├── search/                 # workspace search, find-in-file / find-in-preview core, Worker client, tests
+│   │   ├── markdown/               # stats, outline, Mermaid theme
 │   │   ├── export/                 # HTML / PDF / PNG / DOCX
-│   │   └── markdown/render        # 导出用 unified 渲染
+│   │   └── markdown/render        # unified rendering for export
 │   ├── workers/search.worker.ts
 │   ├── styles/                     # tokens / layout / editor / preview / media / responsive
-│   ├── types/                      # 领域类型与桌面桥类型
-│   └── utils/                      # 路径、下载、通用函数
+│   ├── types/                      # domain types and desktop bridge types
+│   └── utils/                      # paths, downloads, general utilities
 ├── electron/
-│   ├── main.cjs                    # 窗口、菜单、IPC、原生对话框、下载
-│   ├── preload.cjs                 # contextBridge，最小权限 API
-│   └── workspaceFs.cjs             # Node fs 文件系统实现与路径校验
-├── build/icon.png                  # 1024px 应用图标源
+│   ├── main.cjs                    # window, menu, IPC, native dialogs, downloads
+│   ├── preload.cjs                 # contextBridge, least-privilege API
+│   └── workspaceFs.cjs             # Node fs file system implementation and path validation
+├── build/icon.png                  # 1024px app icon source
 ├── scripts/
-│   ├── desktop-dev.mjs             # Vite + Electron 开发模式
-│   ├── package-macos.sh            # 构建、ad-hoc 签名、ZIP、DMG
-│   └── make-dmg.sh                 # 从 .app 生成 DMG
-├── release/                        # 安装包产物（gitignored）
+│   ├── desktop-dev.mjs             # Vite + Electron dev mode
+│   ├── package-macos.sh            # build, ad-hoc signing, ZIP, DMG
+│   └── make-dmg.sh                 # generate DMG from .app
+├── release/                        # installer artifacts (gitignored)
 ├── docs/
 │   ├── ARCHITECTURE.md
+│   ├── ARCHITECTURE.zh-CN.md
 │   ├── desktop.png
-│   └── *.png                       # README 截图
+│   └── *.png                       # README screenshots
 ├── public/favicon.svg
 ├── .github/workflows/ci.yml
 ├── vite.config.ts
@@ -201,18 +204,18 @@ Node fs 原生文件系统]
 
 ---
 
-## 5. 领域模型
+## 5. Domain Model
 
-### 5.1 文档
+### 5.1 Documents
 
 ```ts
 interface DocumentTab {
   id: string;                 // file:<path> | scratch:<uuid> | sample:<path>
   title: string;
-  path: string | null;        // 工作区相对路径；草稿为 null
+  path: string | null;        // workspace-relative path; null for drafts
   origin: 'workspace' | 'scratch' | 'sample';
-  content: string;            // Markdown 源文本
-  savedContent: string;       // 最近一次落盘内容
+  content: string;            // Markdown source text
+  savedContent: string;       // content of the most recent write to disk
   dirty: boolean;             // content !== savedContent
   lastModified: number | null;
   createdAt: number;
@@ -221,9 +224,9 @@ interface DocumentTab {
 }
 ```
 
-所有渲染、搜索、导出都读取 `content`。`savedContent` 用于判断 dirty 并支持会话恢复。
+All rendering, search, and export read `content`. `savedContent` is used to determine dirty state and to support session recovery.
 
-### 5.2 工作区
+### 5.2 Workspace
 
 ```ts
 type TreeNode = FileNode | DirectoryNode;
@@ -245,9 +248,9 @@ interface DirectoryNode {
 }
 ```
 
-树中保留所有可见文件，但只有 `.md / .markdown / .mdown / .mkd / .txt` 可打开。`.git`、`node_modules`、隐藏文件等默认跳过。
+The tree keeps every visible file, but only `.md / .markdown / .mdown / .mkd / .txt` can be opened. `.git`, `node_modules`, hidden files, and the like are skipped by default.
 
-### 5.3 导出选项
+### 5.3 Export Options
 
 ```ts
 interface ExportOptions {
@@ -261,110 +264,110 @@ interface ExportOptions {
 
 ---
 
-## 6. 状态管理
+## 6. State Management
 
-### 6.1 三个 Zustand Store
+### 6.1 The Three Zustand Stores
 
-| Store | 生命周期 | 内容 |
+| Store | Lifecycle | Contents |
 | --- | --- | --- |
-| `workspaceStore` | 当前会话 | 打开的文档标签、active id、工作区快照、同步状态、路径重命名 |
-| `preferencesStore` | `localStorage` 持久化 | 外观、视图模式、侧栏、同步滚动、字号、预览缩放、图片目录 |
-| `uiStore` | 当前会话 | 对话框、Toast、搜索/文件 Tab、大纲开关、移动端侧栏、文件内查找开关、搜索命中跳转请求 |
+| `workspaceStore` | Current session | Open document tabs, active id, workspace snapshot, sync status, path renames |
+| `preferencesStore` | Persisted in `localStorage` | Appearance, view mode, sidebar, sync scrolling, font size, preview zoom, image directory |
+| `uiStore` | Current session | Dialogs, Toast, search/file tabs, outline toggle, mobile sidebar, find-in-file toggle, search-hit reveal requests |
 
-拆分的理由：编辑器高频写入 `workspaceStore`，而主题、视图等偏好变化频率低；拆分可避免不相关组件重渲染。
+Why split them: the editor writes to `workspaceStore` at high frequency, while preferences such as theme and view change rarely; splitting avoids re-rendering unrelated components.
 
-### 6.2 会话恢复
+### 6.2 Session Recovery
 
-`useSessionPersistence` 将文档会话写入 IndexedDB，localStorage 只保留退出时的同步兜底：
+`useSessionPersistence` writes document sessions to IndexedDB, and localStorage keeps only a synchronous fallback for exit:
 
 ```text
-IndexedDB  mdstudio.session.v3        # 元数据：ids / activeDocumentId / updatedAt
-IndexedDB  mdstudio.session.v3:doc:<id>  # 每个文档一条记录
-localStorage mdstudio.session.backup.v1  # pagehide 同步写入，仅含未保存文档
-localStorage mdstudio.session.v2 / v1    # 旧格式，首次启动时自动迁移
+IndexedDB  mdstudio.session.v3        # metadata: ids / activeDocumentId / updatedAt
+IndexedDB  mdstudio.session.v3:doc:<id>  # one record per document
+localStorage mdstudio.session.backup.v1  # written synchronously on pagehide, unsaved documents only
+localStorage mdstudio.session.v2 / v1    # legacy formats, migrated automatically on first launch
 ```
 
-- 写入防抖 650 ms；`pagehide` / `beforeunload` 时同步写一份“仅未保存文档”的备份，避免强退丢失最近修改。
-- 保存时按对象引用差异只写变化的文档 + 元数据，避免每次按键都重写所有文档。
-- 启动时优先读 IndexedDB；若 localStorage 备份更新，则按文档 id 合并（备份内容覆盖同 id 文档）。
-- 估算上限约 32 MB（按正文 UTF-16 字符数粗估）；真正容量由 IndexedDB 配额兜底，写入失败会提示。
-- 恢复时保留 `savedContent`；`dirty` 不再落盘，而是由 `content !== savedContent` 派生。
-- 工作区句柄另外持久化在 IndexedDB，刷新后先恢复句柄权限，再合并恢复文档。
+- Writes are debounced by 650 ms; on `pagehide` / `beforeunload` an "unsaved documents only" backup is written synchronously, so a forced quit does not lose the most recent edits.
+- On save, only changed documents plus metadata are written based on object reference differences, so every keystroke does not rewrite all documents.
+- At startup IndexedDB is read first; if the localStorage backup is newer, documents are merged by document id (backup content overrides documents with the same id).
+- The estimated limit is about 32 MB (a rough estimate from the UTF-16 character count of the body text); the real capacity is bounded by the IndexedDB quota, and a failed write raises a prompt.
+- On restore `savedContent` is retained; `dirty` is no longer persisted but derived from `content !== savedContent`.
+- Workspace handles are persisted separately in IndexedDB; after a refresh, handle permission is restored first, then documents are merged back.
 
-### 6.3 启动顺序
+### 6.3 Startup Order
 
 ```mermaid
 sequenceDiagram
   participant App
-  participant Session as IndexedDB + 备份
+  participant Session as IndexedDB + backup
   participant Store as workspaceStore
   participant IDB as IndexedDB
   participant FS as WorkspaceService
-  App->>Session: 读取 mdstudio.session.v3（必要时合并备份 / 迁移 v2、v1）
-  Session-->>App: 文档快照 / activeId
+  App->>Session: read mdstudio.session.v3 (merge backup / migrate v2, v1 if needed)
+  Session-->>App: document snapshot / activeId
   App->>Store: hydrateDocuments()
   App->>FS: restoreLastWorkspace()
   FS->>IDB: get(workspaceHandle)
   alt permission === granted
-    FS->>FS: scan 目录
+    FS->>FS: scan directory
     FS-->>Store: restoreWorkspaceSnapshot()
-    Store->>App: 保留恢复的文档，必要时打开首个文件
+    Store->>App: keep restored documents, open the first file if needed
   else permission === prompt
     FS-->>Store: status = permission + pendingName
-    App-->>App: 侧栏展示「重新连接」
+    App-->>App: sidebar shows "Reconnect"
   end
 ```
 
 ---
 
-## 7. 编辑器架构
+## 7. Editor Architecture
 
-### 7.1 CodeMirror 集成边界
+### 7.1 CodeMirror Integration Boundary
 
-`MarkdownEditor.tsx` 负责：
+`MarkdownEditor.tsx` is responsible for:
 
-- 每个文档只创建一次 `EditorView`（组件 `key` 使用稳定文档 id；切换 tab 时重建，避免跨文档内容污染）。
-- 文档 id 在创建时生成且永不变更；重命名/移动只更新 `path`，因此不会销毁编辑器、不会丢失撤销历史与滚动位置。
-- 将 CodeMirror 的文档变化回调给 `workspaceStore.updateDocumentContent`。
-- 将光标行列回调给 `store.updateCursor`。
-- 暴露 `onReady(view)` 给父组件，工具栏通过同一 `EditorView` 执行格式命令。
-- 处理剪贴板图片粘贴、图片拖入、滚动比例回传。
-- 通过 ref 保存最新的回调，避免重建编辑器。
+- Creating the `EditorView` only once per document (the component `key` uses the stable document id; switching tabs rebuilds it, avoiding content bleed across documents).
+- Document ids are generated at creation and never change; rename/move only updates `path`, so the editor is not destroyed and undo history and scroll position are not lost.
+- Reporting CodeMirror document changes to `workspaceStore.updateDocumentContent`.
+- Reporting cursor line and column to `store.updateCursor`.
+- Exposing `onReady(view)` to the parent component, so the toolbar runs formatting commands through the same `EditorView`.
+- Handling clipboard image pasting, image drag-in, and scroll ratio reporting.
+- Keeping the latest callbacks in refs to avoid rebuilding the editor.
 
-### 7.2 实时语法隐藏
+### 7.2 Live Syntax Hiding
 
-`livePreview.ts` 是一个 `ViewPlugin`，使用 `syntaxTree(state)` 遍历 Lezer Markdown AST：
+`livePreview.ts` is a `ViewPlugin` that walks the Lezer Markdown AST with `syntaxTree(state)`:
 
-1. 计算当前 selection 覆盖的所有行（active lines）。
-2. 对 `ATXHeading1..6` 添加行装饰，赋予对应字号、字重。
-3. 对 `StrongEmphasis / Emphasis / Strikethrough / InlineCode / Link` 添加内容装饰。
-4. 对非 active 行的 `HeaderMark / EmphasisMark / StrikethroughMark / CodeMark / QuoteMark` 使用 `Decoration.replace` 隐藏；相邻隐藏区间合并，避免 RangeSet 冲突。
-5. 对 active 行保留语法标记，并赋予低对比度样式，保证可以继续修改。
-6. 对 `Blockquote` 加行级背景与左边线、对 `FencedCode` 加代码块行样式。
-7. 光标移动、文档变化、viewport 变化时重建装饰。
+1. Compute all lines covered by the current selection (active lines).
+2. Add line decorations for `ATXHeading1..6`, assigning the corresponding font size and weight.
+3. Add content decorations for `StrongEmphasis / Emphasis / Strikethrough / InlineCode / Link`.
+4. Hide `HeaderMark / EmphasisMark / StrikethroughMark / CodeMark / QuoteMark` on non-active lines with `Decoration.replace`; adjacent hidden ranges are merged to avoid RangeSet conflicts.
+5. Keep syntax marks on active lines and give them a low-contrast style so they can still be edited.
+6. Add a line-level background and left border for `Blockquote`, and code-block line styling for `FencedCode`.
+7. Rebuild decorations on cursor movement, document changes, and viewport changes.
 
-这是本项目对 PRD 「标记自动隐藏 / 光标进入行后恢复」的实现方式。当前行的标记采取 **淡化而非完全隐藏** 的策略，使用户仍能直接定位和修改标记；离开当前行后完全隐藏。
+This is how the project implements the PRD's "marks hide automatically / come back when the cursor enters the line". Marks on the current line are **dimmed rather than fully hidden**, so users can still locate and edit them directly; once the cursor leaves the line they are fully hidden.
 
-### 7.3 智能列表与缩进
+### 7.3 Smart Lists and Indentation
 
-- 使用 `@codemirror/lang-markdown` 的 `markdownKeymap` 处理 Enter 和 Backspace 的 Markdown 上下文。
-- Tab / Shift+Tab 绑定 `indentMore` / `indentLess`。
-- 有序/无序/任务列表的继续由 `insertNewlineContinueMarkup` 完成，自动继承缩进、列表符号、任务标记并递增编号。
-- 工具栏命令通过 CodeMirror transaction 修改文档，因此进入 undo 历史。
+- `markdownKeymap` from `@codemirror/lang-markdown` handles Enter and Backspace in Markdown context.
+- Tab / Shift+Tab are bound to `indentMore` / `indentLess`.
+- Continuation of ordered/unordered/task lists is done by `insertNewlineContinueMarkup`, which automatically inherits indentation, list marker, and task marker, and increments the number.
+- Toolbar commands modify the document through CodeMirror transactions, so they enter the undo history.
 
-### 7.4 格式命令
+### 7.4 Formatting Commands
 
-`commands.ts` 中的纯函数与 EditorView 命令分离：
+Pure functions in `commands.ts` are separated from EditorView commands:
 
-- `transformHeadingLines` / `transformLinePrefix`：纯文本转换，可直接单测。
-- 标题、粗体、斜体、删除线、行内代码、链接、图片、引用、列表、任务列表、表格、数学、Mermaid 块。
-- 工具栏「图片」按钮打开 `InsertImageDialog`：实时分析路径、给出相对路径说明与工作区图片候选，确认后替换选区插入 Markdown。
-- 选区保持、占位文本选中、成对标记的 toggle 行为。
-- 代码块、表格、公式、Mermaid 使用空行补齐，避免把块粘在段落中。
+- `transformHeadingLines` / `transformLinePrefix`: plain-text transformations that can be unit tested directly.
+- Headings, bold, italic, strikethrough, inline code, links, images, quotes, lists, task lists, tables, math, and Mermaid blocks.
+- The toolbar "Image" button opens `InsertImageDialog`: it analyzes the path live, gives relative-path guidance and workspace image candidates, and on confirmation replaces the selection with the inserted Markdown.
+- Selection retention, placeholder text selection, and toggle behavior for paired marks.
+- Code blocks, tables, formulas, and Mermaid are padded with blank lines so blocks are not glued into paragraphs.
 
 ---
 
-## 8. Markdown 渲染
+## 8. Markdown Rendering
 
 ```text
 Markdown source
@@ -378,100 +381,100 @@ Markdown source
        └─ heading DOM → outline
 ```
 
-- **GFM**：表格、任务列表、删除线、自动链接。
-- **数学**：行内公式与块级公式由 `remark-math` 解析，KaTeX 渲染；`katex/dist/katex.min.css` 在应用内加载。预览与导出共用 `services/markdown/katexOptions.ts`，`strict: 'ignore'` 只关闭“数学模式里的 CJK 字符”这类排版提示，真正的语法错误仍输出 `katex-error`。
-- **Mermaid**：`CodeBlock` 检测 `language-mermaid`，动态导入 Mermaid，`securityLevel: 'strict'`，主题黑白。解析失败渲染错误卡片和源码，不抛到页面根节点。
-- **图片**：相对路径由 `WorkspaceService.resolveAssetObjectUrl` 解析为 Blob URL；未连接工作区的粘贴图片以内嵌 Data URL 保存。路径统一经 `resolvePathFrom` 解析（支持 `./`、`../` 与工作区根 `/`），加载失败时展示实际解析路径、格式支持与同名图片提示。
-- **图片查看器**：点击预览图片、本地图片链接或文件树中的图片文件，在预览面板内容区打开 `ImagePreviewPane`，只覆盖预览区（保留应用标题栏、侧栏与编辑区）；支持 5%–800% 缩放、Ctrl/⌘ + 滚轮锚点缩放、拖拽平移、适应窗口与 1:1。图片格式白名单为 PNG / JPEG / GIF / WebP / SVG / AVIF / BMP / ICO / APNG。写作视图下打开图片会自动切到分屏，确保图片出现在预览区而不是弹窗。
-- **预览缩放**：`previewZoom` 持久化在偏好中，范围 50%–300%；通过 CSS `zoom` 缩放整篇排版，并反向补偿阅读栏宽度。
-- **链接**：外部链接 `_blank`；`*.md` 相对链接通过 `onOpenPath` 打开工作区对应文件，指向工作区图片的本地链接交给图片查看器；`#hash` 在预览内滚动。
-- **安全**：ReactMarkdown 默认不执行原始 HTML；没有自定义 `dangerouslySetInnerHTML` 处理用户 Markdown（Mermaid SVG 是严格模式下的库输出）。自定义 `urlTransform` 仅额外放行图片 Data URL，`javascript:` 等协议仍被拦截。外部链接带 `noopener noreferrer`。
+- **GFM**: tables, task lists, strikethrough, autolinks.
+- **Math**: inline and block formulas are parsed by `remark-math` and rendered by KaTeX; `katex/dist/katex.min.css` is loaded inside the app. Preview and export share `services/markdown/katexOptions.ts`; `strict: 'ignore'` only silences typesetting hints such as "CJK characters in math mode", while genuine syntax errors still emit `katex-error`.
+- **Mermaid**: `CodeBlock` detects `language-mermaid`, dynamically imports Mermaid, uses `securityLevel: 'strict'`, with a black-and-white theme. On parse failure it renders an error card plus the source instead of throwing to the page root.
+- **Images**: relative paths are resolved to Blob URLs by `WorkspaceService.resolveAssetObjectUrl`; pasted images with no connected workspace are stored as inline Data URLs. Paths are uniformly resolved via `resolvePathFrom` (supporting `./`, `../`, and the workspace root `/`); on load failure it shows the actually resolved path, the supported formats, and hints for same-name images.
+- **Image viewer**: clicking a preview image, a local image link, or an image file in the file tree opens `ImagePreviewPane` in the content area of the preview panel, covering only the preview pane (the app title bar, sidebar, and editor area stay visible); it supports 5%–800% zoom, Ctrl/⌘ + wheel anchored zoom, drag-to-pan, fit to window, and 1:1. The image format allowlist is PNG / JPEG / GIF / WebP / SVG / AVIF / BMP / ICO / APNG. Opening an image in writing view automatically switches to split view, ensuring the image appears in the preview pane rather than in a modal.
+- **Preview zoom**: `previewZoom` is persisted in preferences, range 50%–300%; CSS `zoom` scales the whole typeset page, with the reading column width compensated in reverse.
+- **Links**: external links open with `_blank`; relative `*.md` links open the corresponding workspace file via `onOpenPath`, local links pointing at workspace images are handed to the image viewer; `#hash` scrolls within the preview.
+- **Security**: ReactMarkdown does not execute raw HTML by default; there is no custom `dangerouslySetInnerHTML` handling of user Markdown (the Mermaid SVG is library output in strict mode). The custom `urlTransform` only additionally allows image Data URLs, while protocols such as `javascript:` are still blocked. External links carry `noopener noreferrer`.
 
-### 大纲
+### Outline
 
-渲染完成后从预览 DOM 读取 `h1..h6` 的 `id` 与文本；`rehype-slug` 负责生成稳定的锚点 ID。大纲面板只做导航，不作为第二份文档状态。
+After rendering, the `id` and text of `h1..h6` are read from the preview DOM; `rehype-slug` generates stable anchor IDs. The outline panel is for navigation only, not a second copy of document state.
 
-### 统计口径
+### Statistics Definitions
 
-`services/markdown/stats.ts` 将 Markdown 语法剥离后计算可见内容：
+`services/markdown/stats.ts` computes visible content after stripping Markdown syntax:
 
-- **字数**：每个中日韩字符计 1，每个连续字母/数字序列计 1 个英文单词。
-- **英文单词**：上述连续字母/数字序列的数量（不含中文）。
-- **字符数**：去除空白后的可见字符数，包含中英文标点；不包含 Markdown 标记。
-- **段落数**：以空行分隔的可见文本块数量。
-- **行数**：原始 Markdown 源文本行数。
-- **阅读时间**：`ceil(字数 / 300)` 分钟；空文档为 0。
-- 代码围栏本身不计入可见字符，代码内容会作为文本参与统计。
+- **Word count**: each CJK character counts as 1, and each contiguous run of letters/digits counts as 1 English word.
+- **English words**: the number of those contiguous letter/digit runs (excluding Chinese).
+- **Character count**: visible characters after removing whitespace, including Chinese and English punctuation; Markdown marks are not included.
+- **Paragraphs**: the number of visible text blocks separated by blank lines.
+- **Lines**: the number of lines in the raw Markdown source text.
+- **Reading time**: `ceil(word count / 300)` minutes; 0 for an empty document.
+- The code fences themselves do not count as visible characters, while code content participates in the statistics as text.
 
-状态栏中的字数、单词、字符、段落与阅读时间都使用这些规则，并在 tooltip 中提示。
+The word count, words, characters, paragraphs, and reading time in the status bar all use these rules, and are explained in tooltips.
 
 ---
 
-## 9. 本地工作区
+## 9. Local Workspace
 
-### 9.1 双文件系统后端
+### 9.1 Dual File System Backends
 
-`services/file-system/index.ts` 在运行时选择实现，UI 和状态层只依赖 `WorkspaceServiceContract`：
+`services/file-system/index.ts` selects the implementation at runtime; the UI and state layers depend only on `WorkspaceServiceContract`:
 
 ```text
-window.markdownStudioDesktop 存在？
-  ├─ 是 → DesktopWorkspaceService → preload → Electron IPC → Node fs
-  └─ 否 → WorkspaceService → File System Access API
+Does window.markdownStudioDesktop exist?
+  ├─ yes → DesktopWorkspaceService → preload → Electron IPC → Node fs
+  └─ no → WorkspaceService → File System Access API
 ```
 
-**Web 后端**
+**Web backend**
 
-| 能力 | API |
+| Capability | API |
 | --- | --- |
-| 打开目录 | `window.showDirectoryPicker({ mode: 'readwrite' })` |
-| 权限 | `queryPermission` / `requestPermission` |
-| 扫描 | `directory.values()` 异步迭代，递归构建排序树 |
-| 读取/写入 | `FileSystemFileHandle.getFile()` / `createWritable()` |
-| 新建 | `getFileHandle(name, { create: true })` / `getDirectoryHandle` |
-| 删除 | `removeEntry(name, { recursive: true })` |
-| 重命名/移动 | copy + delete（API 不提供原生 move） |
-| 图片 | 写入配置的资源目录，返回相对路径与 Blob URL |
-| 搜索索引 | 批量读取 Markdown，按 `lastModified` 缓存 |
+| Open directory | `window.showDirectoryPicker({ mode: 'readwrite' })` |
+| Permission | `queryPermission` / `requestPermission` |
+| Scan | `directory.values()` async iteration, recursively building a sorted tree |
+| Read/write | `FileSystemFileHandle.getFile()` / `createWritable()` |
+| Create | `getFileHandle(name, { create: true })` / `getDirectoryHandle` |
+| Delete | `removeEntry(name, { recursive: true })` |
+| Rename/move | copy + delete (the API provides no native move) |
+| Images | Write to the configured asset directory, return the relative path and a Blob URL |
+| Search index | Batch-read Markdown, cached by `lastModified` |
 
-**桌面后端**
+**Desktop backend**
 
-| 能力 | 实现 |
+| Capability | Implementation |
 | --- | --- |
-| 打开目录 | Electron `dialog.showOpenDialog({ properties: ['openDirectory'] })` |
-| 扫描 | 主进程 `fs.readdir` 递归构建树，最多 6000 文件 |
-| 读取/写入 | `fs.readFile` / `fs.writeFile`；单文件编辑器上限 10 MB |
-| 新建/删除 | `fs.mkdir` / `fs.rm` |
-| 重命名/移动 | `fs.rename`（同卷原子操作），目标已存在时拒绝 |
-| 图片 | 主进程写入资源目录；预览读取为 Data URL，或直接使用刚粘贴的 Blob URL |
-| 搜索索引 | 主进程批量读取 Markdown 内容，再交给 Worker 查询 |
-| 恢复工作区 | `app.getPath('userData')/last-workspace.json` 保存路径，启动时自动恢复 |
+| Open directory | Electron `dialog.showOpenDialog({ properties: ['openDirectory'] })` |
+| Scan | Main process `fs.readdir` builds the tree recursively, max 6000 files |
+| Read/write | `fs.readFile` / `fs.writeFile`; single-file editor limit 10 MB |
+| Create/delete | `fs.mkdir` / `fs.rm` |
+| Rename/move | `fs.rename` (atomic within the same volume), rejected when the target already exists |
+| Images | Main process writes to the asset directory; preview reads it as a Data URL, or uses the freshly pasted Blob URL directly |
+| Search index | Main process batch-reads Markdown content, then hands it to the Worker for querying |
+| Restore workspace | Path stored in `app.getPath('userData')/last-workspace.json`, restored automatically at startup |
 
-限制：
+Limits:
 
-- 两种后端都忽略 `.git`、`node_modules`、`dist`、隐藏目录等。
-- 桌面与 Web 都只允许访问当前工作区；所有 IPC 路径在主进程二次校验，`../` 不能逃逸。
-- 浏览器安全模型下**无法写入当前工作区之外的任意绝对路径**。图片目录设置支持工作区相对路径（如 `assets` 或 `/assets`）。
+- Both backends ignore `.git`, `node_modules`, `dist`, hidden directories, and the like.
+- Both desktop and Web only allow access to the current workspace; all IPC paths are validated a second time in the main process, so `../` cannot escape.
+- Under the browser security model it is **impossible to write to arbitrary absolute paths outside the current workspace**. The image directory setting accepts workspace-relative paths (e.g. `assets` or `/assets`).
 
-### 9.2 权限与句柄（Web）
+### 9.2 Permissions and Handles (Web)
 
-- 打开目录后请求 `readwrite` 权限。
-- 句柄写入 IndexedDB；下次启动先 `queryPermission`。
-- 如果状态是 `prompt`，不自动弹权限请求（浏览器要求用户手势），在侧栏展示「重新连接」按钮。
-- 目录权限被撤销时，错误会通过 Toast 或重新连接提示暴露，不崩溃。
+- After opening a directory, request `readwrite` permission.
+- The handle is written to IndexedDB; on the next launch `queryPermission` is called first.
+- If the state is `prompt`, no permission request is popped up automatically (browsers require a user gesture); instead a "Reconnect" button is shown in the sidebar.
+- When directory permission is revoked, the error surfaces via a Toast or the reconnect prompt instead of crashing.
 
-### 9.3 外部变更同步
+### 9.3 External Change Sync
 
-`useWorkspaceActions` 在应用层运行 5 秒轮询（仅页面可见且工作区已连接）：
+`useWorkspaceActions` runs a 5-second poll at the application layer (only while the page is visible and a workspace is connected):
 
-1. **单飞**：轮询与手动刷新共享同一个进行中的 Promise，慢扫描不会叠加。
-2. 重新扫描目录树；Web 端与桌面端对文件元数据采用有限并发（12 / 16），避免串行 stat。
-3. 计算树的变更签名（路径 + `lastModified` + `size`）；签名不变时保持原 `tree` 引用，不触发文件树重渲染。
-4. 对 **未 dirty** 的打开文档，如果磁盘 `lastModified` 更新，则读取内容并同步到编辑器。
-5. 有未保存修改的文档不会被外部内容覆盖。
+1. **Single-flight**: polling and manual refresh share the same in-flight Promise, so slow scans do not pile up.
+2. Rescan the directory tree; on both Web and desktop, file metadata uses bounded concurrency (12 / 16) to avoid serial stat calls.
+3. Compute a change signature for the tree (path + `lastModified` + `size`); when the signature is unchanged the original `tree` reference is kept, avoiding file-tree re-renders.
+4. For open documents that are **not dirty**, if the on-disk `lastModified` is newer, read the content and sync it into the editor.
+5. Documents with unsaved changes are never overwritten by external content.
 
-**桌面端已接入原生文件监听**：主进程用 `fs.watch(..., { recursive: true })` 监听工作区（macOS 底层为 FSEvents），250 ms 防抖后通过 `workspace:changed` 通知渲染层立即静默刷新；监听失败或平台不支持时自动退回 5 秒轮询。Web 端仍以轮询为跨浏览器折中。
+**Desktop has native file watching wired up**: the main process watches the workspace with `fs.watch(..., { recursive: true })` (FSEvents underneath on macOS) and, after a 250 ms debounce, notifies the renderer via `workspace:changed` to trigger an immediate silent refresh; if watching fails or the platform does not support it, it automatically falls back to 5-second polling. The Web side still uses polling as a cross-browser compromise.
 
-### 9.4 图片粘贴
+### 9.4 Image Pasting
 
 ```mermaid
 sequenceDiagram
@@ -480,23 +483,23 @@ sequenceDiagram
   participant Actions as useWorkspaceActions
   participant FS as WorkspaceService
   participant Preview as Preview
-  CM->>App: paste(event) 图片 File
+  CM->>App: paste(event) image File
   App->>Actions: pasteImage(file)
-  alt 工作区已连接
+  alt workspace connected
     Actions->>FS: saveImage(file, docPath, imageDirectory)
     FS-->>Actions: assets/image_xxx.png + Blob URL
-    Actions-->>CM: ![粘贴的图片](../assets/image_xxx.png)
+    Actions-->>CM: ![Pasted image](../assets/image_xxx.png)
     Actions->>Actions: refreshWorkspace()
-  else 未连接工作区
-    Actions-->>CM: ![粘贴的图片](data:image/png;base64,...)
+  else no workspace connected
+    Actions-->>CM: ![Pasted image](data:image/png;base64,...)
   end
   Preview->>FS: resolveAssetObjectUrl(docPath, src)
   FS-->>Preview: Blob URL
 ```
 
-相对路径以当前文档目录为基准计算（`relativeAssetPath`），文档在子目录时会正确生成 `../assets/...`。
+Relative paths are computed against the current document's directory (`relativeAssetPath`), so documents in a subdirectory correctly produce `../assets/...`.
 
-### 9.5 Electron 桌面封装
+### 9.5 Electron Desktop Packaging
 
 ```mermaid
 sequenceDiagram
@@ -512,384 +515,384 @@ sequenceDiagram
   P-->>R: Promise<DesktopScanResult>
 ```
 
-- **窗口**：`BrowserWindow` + `contextIsolation: true`、`nodeIntegration: false`、`sandbox: true`；macOS 使用 `hiddenInset` 标题栏，AppBar 设为窗口拖拽区。
-- **菜单**：macOS 应用菜单、文件 / 编辑 / 显示 / 窗口；`⌘O` 通过 IPC 触发渲染层的打开文件夹动作。
-- **下载**：拦截 `will-download`，用原生“另存为”对话框选择导出目录，避免静默下载。
-- **外链**：拦截 `window.open` 与导航，HTTP(S) 链接交给系统浏览器。
-- **安全**：preload 只暴露 `chooseWorkspace / scan / read / write / rename / remove / image` 等最小 API；主进程只接受相对路径，并在每次读写前对目标（或最近已存在祖先）做 `realpath` 校验，阻止通过符号链接逃逸工作区。
-- **IPC 边界**：只接受主窗口主 frame 的调用；入参做类型校验；生产构建注入 CSP（`script-src 'self'`，不含远程脚本），开发模式不注入以免破坏 HMR。
-- **导航与权限**：`will-navigate` 默认全部拒绝，`http(s)` 交给系统浏览器；`setPermissionRequestHandler` 默认拒绝，仅放行剪贴板写入；启用单实例锁，避免两个实例竞争 `last-workspace.json`。
-- **下载**：先暂停下载项，异步弹出原生“另存为”，确认后再设置路径并恢复，避免阻塞主进程。
-- **持久化**：上次工作区路径存在 `userData/last-workspace.json`；文档会话使用渲染层 IndexedDB，退出时写 localStorage 备份。
-- **打包**：electron-builder 生成 `.app` / Windows 目录；应用内没有业务 node_modules（renderer 已打包），asar 约 8 MB。
-- **macOS**：ad-hoc 签名后由 `ditto` 生成 ZIP；`hdiutil` 生成 DMG。
-- **Windows**：同一个 Electron 主进程和 preload，使用 `electron-builder --win nsis portable --x64` 生成 NSIS 安装器和便携 EXE。Apple Silicon 构建机通过 `build.toolsets.nsis: "1.2.1"` 使用 arm64 版 `makensis`，避开旧版 x86_64 二进制在 Apple Silicon 上的兼容问题。Windows EXE 不签名。
+- **Window**: `BrowserWindow` + `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`; macOS uses a `hiddenInset` title bar, and the AppBar is made the window drag region.
+- **Menu**: macOS app menu, File / Edit / View / Window; `⌘O` triggers the renderer's open-folder action via IPC.
+- **Downloads**: intercept `will-download` and use a native "Save As" dialog to choose the export directory, avoiding silent downloads.
+- **External links**: intercept `window.open` and navigation; HTTP(S) links are handed to the system browser.
+- **Security**: preload exposes only a minimal API such as `chooseWorkspace / scan / read / write / rename / remove / image`; the main process accepts only relative paths and runs `realpath` validation on the target (or its nearest existing ancestor) before every read and write, preventing escapes from the workspace through symbolic links.
+- **IPC boundary**: only calls from the main frame of the main window are accepted; arguments are type-validated; production builds inject a CSP (`script-src 'self'`, no remote scripts), while dev mode does not inject one so HMR keeps working.
+- **Navigation and permissions**: `will-navigate` denies everything by default, with `http(s)` handed to the system browser; `setPermissionRequestHandler` denies by default and only allows clipboard writes; a single-instance lock is enabled so two instances cannot race over `last-workspace.json`.
+- **Downloads**: pause the download item first, asynchronously show the native "Save As", then set the path and resume after confirmation, avoiding blocking the main process.
+- **Persistence**: the last workspace path is stored in `userData/last-workspace.json`; document sessions use renderer IndexedDB, with a localStorage backup written on exit.
+- **Packaging**: electron-builder produces `.app` / Windows directories; the app ships no business node_modules (the renderer is bundled), and the asar is about 8 MB.
+- **macOS**: after ad-hoc signing, `ditto` produces the ZIP; `hdiutil` produces the DMG.
+- **Windows**: the same Electron main process and preload, using `electron-builder --win nsis portable --x64` to produce the NSIS installer and portable EXE. The Apple Silicon build machine uses the arm64 `makensis` via `build.toolsets.nsis: "1.2.1"`, avoiding compatibility problems of older x86_64 binaries on Apple Silicon. Windows EXEs are not signed.
 
-桌面安装包：
+Desktop installers:
 
-- `release/Markdown-studio-2.0.0-arm64.dmg`（129 MB）
-- `release/Markdown-studio-2.0.0-arm64.zip`（117 MB）
+- `release/Markdown-studio-2.0.0-arm64.dmg` (129 MB)
+- `release/Markdown-studio-2.0.0-arm64.zip` (117 MB)
 - `release/mac-arm64/Markdown studio.app`
-- `release/Markdown-studio-2.0.0-x64-setup.exe`（118 MB，NSIS 安装版）
-- `release/Markdown-studio-2.0.0-x64-portable.exe`（107 MB，便携版）
+- `release/Markdown-studio-2.0.0-x64-setup.exe` (118 MB, NSIS installer)
+- `release/Markdown-studio-2.0.0-x64-portable.exe` (107 MB, portable)
 
-macOS 已从 DMG 挂载启动，验证原生工作区、保存、图片粘贴、搜索和上次工作区恢复；ad-hoc 签名没有 Apple Developer ID 公证，首次打开可能需要右键 →「打开」。Windows 包已通过 7-Zip 归档测试并验证内嵌 `MarkdownStudio.exe` / `app.asar`，但当前构建机无法运行 Windows，尚未做实机启动验证。
+macOS has been launched from the mounted DMG, verifying the native workspace, saving, image pasting, search, and last-workspace restore; the ad-hoc signature has no Apple Developer ID notarization, so the first launch may require right-click → "Open". The Windows package has passed a 7-Zip archive test and the embedded `MarkdownStudio.exe` / `app.asar` were verified, but the current build machine cannot run Windows, so no on-device launch verification has been performed yet.
 
 ---
 
-## 10. 搜索系统
+## 10. Search System
 
-### 10.1 索引与查询
+### 10.1 Index and Query
 
-- 工作区连接后，`SearchPanel` 在后台预建索引（文件数 ≤ 2000 时），并显示进度。
-- **索引常驻 Worker**：主线程通过 `set-index` 一次性下发全量索引；只有目录树签名变化时才重建并重新下发。
-- 打开中的文档（含未保存内容）以 `update-index` 增量补丁同步；关闭文档时回填磁盘内容。每次查询只发送 `{ query, useRegex, caseSensitive, maxResults }`，不再复制整个工作区正文。
-- 查询交给 `search.worker.ts`，主线程只处理结果渲染。
-- 点击命中结果会打开对应文件，并通过 `uiStore.revealRequest` 定位到编辑器行列；编辑器短暂闪烁高亮该命中。
+- Once a workspace is connected, `SearchPanel` pre-builds the index in the background (when the file count is ≤ 2000) and displays progress.
+- **The index lives in the Worker**: the main thread sends the full index once via `set-index`; it is rebuilt and re-sent only when the directory-tree signature changes.
+- Open documents (including unsaved content) are synced with incremental `update-index` patches; when a document closes, the on-disk content is backfilled. Each query sends only `{ query, useRegex, caseSensitive, maxResults }` and no longer copies the entire workspace text.
+- Queries are handed to `search.worker.ts`; the main thread only handles result rendering.
+- Clicking a hit opens the corresponding file and reveals the line and column in the editor through `uiStore.revealRequest`; the editor briefly flashes a highlight on that hit.
 
 ```text
-set-index(files[]) ──postMessage──▶ Worker（基准索引）
-update-index(changed[]) ──────────▶ Worker（打开文档的增量覆盖）
-reset-overrides(paths[]) ─────────▶ Worker（关闭文档时恢复基准内容）
-matching-paths(query) ────────────▶ Worker（“全部替换”的文件清单，不受 maxResults 限制）
+set-index(files[]) ──postMessage──▶ Worker (baseline index)
+update-index(changed[]) ──────────▶ Worker (incremental override for open documents)
+reset-overrides(paths[]) ─────────▶ Worker (restore baseline content when a document closes)
+matching-paths(query) ────────────▶ Worker (file list for "Replace All", not limited by maxResults)
 { query, options } ───────────────▶ Worker
-                                     ├─ 编译 regex / 转义普通字符串
-                                     ├─ 逐文件逐行枚举全部命中
-                                     ├─ 生成 280 字符上下文片段
-                                     └─ 截断至 maxResults
+                                     ├─ compile regex / escape plain strings
+                                     ├─ enumerate all hits file by file, line by line
+                                     ├─ build 280-character context snippets
+                                     └─ truncate to maxResults
 results[] ◀──postMessage────────────┘
 ```
 
-渲染层只保留路径列表，不再保留工作区正文副本；全部替换通过 `matching-paths` 获取完整文件清单，再逐个读盘替换。
+The renderer keeps only the path list and no longer keeps a copy of the workspace text; Replace All obtains the complete file list through `matching-paths`, then reads and replaces each file one by one.
 
-### 10.2 替换
+### 10.2 Replace
 
-- **全部替换**：二次读取磁盘最新内容，构造新的全局 RegExp，逐个文件写回；跳过 dirty 的打开文档，并在结果提示中说明跳过数量。
-- **逐条替换**：根据命中的行号与列号定位，读取最新文件内容后替换单处，再刷新结果。
-- 替换完成后刷新文件树与打开文档内容，避免界面与磁盘状态不一致。
-- 示例工作区只读；替换按钮禁用，并提示打开本地文件夹。
+- **Replace All**: re-read the latest content from disk, build a new global RegExp, and write back file by file; dirty open documents are skipped, and the number skipped is stated in the result message.
+- **Replace one**: locate by the hit's line and column, read the latest file content, replace the single occurrence, then refresh the results.
+- After replacement, the file tree and open document contents are refreshed so the UI and disk state do not diverge.
+- The sample workspace is read-only; replace buttons are disabled with a hint to open a local folder.
 
-### 10.3 编辑器内查找与替换
+### 10.3 Find and Replace Inside the Editor
 
-- `⌘F` / `Ctrl F` 打开编辑器右上角的浮动查找条；当前有选区时会自动带入查询。
-- `findCore.ts` 与工作区搜索共享匹配语义：普通文本 / 正则、大小写、全字匹配，返回 CodeMirror 可直接使用的 UTF-16 偏移。
-- `findMatches` 枚举全部命中并跳过零宽正则；`EditorFindWidget` 通过 `searchHighlight` 的 StateField 渲染全部命中与当前命中，并滚动到当前命中；命中使用淡绿色背景，当前命中加深显示。
-- `⌘⌥F` / `Ctrl H` / `Ctrl Alt F` 展开替换。普通模式替换保持字面量；正则模式支持 `$1`、`$<name>`、`$&` 捕获组。替换通过 CodeMirror transaction 写回，自动标记 dirty 并进入撤销历史。
-- `Enter` / `Shift Enter`、`F3` / `Shift F3` 循环跳转；`Esc` 关闭并清除高亮。
-- `EditorFindWidget` 与 `PreviewFindWidget` 共用 `FindBar` 和 `uiStore` 中的查询状态；在视图之间切换时，查询与选项保持。
+- `⌘F` / `Ctrl F` opens the floating find bar at the top-right of the editor; when there is a selection it is pre-filled into the query.
+- `findCore.ts` shares matching semantics with workspace search: plain text / regex, case sensitivity, whole word, returning UTF-16 offsets that CodeMirror can use directly.
+- `findMatches` enumerates all hits and skips zero-width regex matches; `EditorFindWidget` renders all hits and the current hit through the StateField in `searchHighlight`, and scrolls to the current hit; hits use a light green background, with the current hit shown darker.
+- `⌘⌥F` / `Ctrl H` / `Ctrl Alt F` expands replace. In plain mode replacement stays literal; in regex mode `$1`, `$<name>`, and `$&` capture groups are supported. Replacement is written back through a CodeMirror transaction, automatically marks the document dirty, and enters the undo history.
+- `Enter` / `Shift Enter`, `F3` / `Shift F3` cycle through hits; `Esc` closes and clears highlights.
+- `EditorFindWidget` and `PreviewFindWidget` share `FindBar` and the query state in `uiStore`; switching between views keeps the query and options.
 
-### 10.4 预览内查找
+### 10.4 Find Inside the Preview
 
-- 预览视图下 `⌘F` 不再切换视图；`PreviewFindWidget` 直接在当前渲染结果中查找，只提供查找、上一处 / 下一处与计数，不显示替换入口。
-- `previewSearch.ts` 将 `.markdown-body` 的可见文本节点压平成带偏移的索引，块级元素之间插入分隔符，使短语搜索不会跨段落误匹配；搜索得到的偏移再映射回 DOM `Range`。
-- 高亮使用 CSS Custom Highlight API（`::highlight(md-preview-search)` / `::highlight(md-preview-search-active)`），颜色为淡绿 / 加深淡绿，不修改 React 渲染出的 DOM；代码块头、MathML 重复内容、Mermaid SVG 等噪音节点会被排除。
-- 预览 DOM 变化（异步图表、公式、外部文件刷新）由 `MutationObserver` 触发重建；`Range.getBoundingClientRect()` 负责把当前命中滚动到预览可视区域。
+- In preview view `⌘F` no longer switches views; `PreviewFindWidget` searches directly in the current rendered result and offers only find, previous / next, and a count; no replace entry is shown.
+- `previewSearch.ts` flattens the visible text nodes of `.markdown-body` into an index with offsets, inserting separators between block-level elements so phrase searches do not match across paragraphs; the resulting offsets are then mapped back to DOM `Range`s.
+- Highlighting uses the CSS Custom Highlight API (`::highlight(md-preview-search)` / `::highlight(md-preview-search-active)`), with light green / darker light green colors, without mutating the React-rendered DOM; noise nodes such as code block headers, duplicated MathML content, and Mermaid SVGs are excluded.
+- Preview DOM changes (async diagrams, formulas, external file refreshes) trigger a rebuild via `MutationObserver`; `Range.getBoundingClientRect()` scrolls the current hit into the preview's visible area.
 
-### 10.5 性能边界
+### 10.5 Performance Boundaries
 
-- 首次索引读取磁盘，取决于文件数量和磁盘速度，UI 显示进度。
-- 查询阶段在 Worker 中线性扫描内存索引。1000 文件、每文件数十 KB 的规模下查询是毫秒级；首次索引不保证 1 秒内完成。
-- 该设计优先保证 **查询不卡主线程**，并用后台预取缩短用户第一次搜索的等待时间。
+- The first index build reads from disk and depends on file count and disk speed; the UI shows progress.
+- The query phase scans the in-memory index linearly in the Worker. At the scale of 1000 files of tens of KB each, queries are millisecond-level; the first index build is not guaranteed to finish within 1 second.
+- This design prioritizes **keeping queries off the main thread**, and uses background prefetching to shorten the user's wait for the first search.
 
 ---
 
-## 11. 导出系统
+## 11. Export System
 
 ```mermaid
 flowchart LR
   MD[Markdown source] --> U[unified\nremark-parse / gfm / math]
   U --> HTML[rehype HTML]
-  HTML --> P[隐藏 export page]
-  P -->|代码高亮 / 图片内联 / Mermaid| P2[最终 DOM]
+  HTML --> P[hidden export page]
+  P -->|code highlighting / image inlining / Mermaid| P2[final DOM]
   P2 -->|outerHTML + CSS| H[HTML Blob]
   P2 -->|html2canvas| C[Canvas]
-  C -->|toBlob| PNG[PNG 长图]
-  C -->|jsPDF 切片| PDF[PDF Blob]
-  MD -->|mdast| D[docx 文档树]
+  C -->|toBlob| PNG[PNG long image]
+  C -->|jsPDF slicing| PDF[PDF Blob]
+  MD -->|mdast| D[docx document tree]
   D -->|Packer| DOCX[.docx Blob]
 ```
 
 ### 11.1 HTML
 
-- 使用 unified 直接生成 HTML，避免依赖预览 DOM 的可视状态。
-- 在离屏容器中做代码高亮、Mermaid SVG 渲染、相对图片内联。
-- 导出样式由 `tokens.css`、`preview.css`、导出页样式组合而成。
-- 数学样式通过 KaTeX CDN 引用；Mermaid SVG 已内联。
+- Use unified to generate HTML directly, avoiding dependence on the visual state of the preview DOM.
+- Perform code highlighting, Mermaid SVG rendering, and relative image inlining in an off-screen container.
+- Export styles are composed of `tokens.css`, `preview.css`, and the export page styles.
+- Math styles are referenced through the KaTeX CDN; Mermaid SVGs are already inlined.
 
 ### 11.2 PDF / PNG
 
-- 创建与 A4 等宽（794px）的隐藏 `.export-page`，按当前主题使用黑/白变量。
-- `html2canvas` 以 2x 比例截图。
-- PDF 使用 jsPDF 按 A4 内容高度切片；`includeFooter` 时绘制页码。
-- 这是“视觉快照”式 PDF：与编辑器预览高度一致，但分页是按像素切片，长表格/代码块可能在页边界被切开。生产级打印排版可替换为原生打印或服务端渲染。
+- Create a hidden `.export-page` with the same width as A4 (794px), using black/white variables according to the current theme.
+- `html2canvas` captures at 2x scale.
+- PDF uses jsPDF to slice by A4 content height; page numbers are drawn when `includeFooter` is set.
+- This is a "visual snapshot" PDF: highly consistent with the editor preview, but pagination slices by pixels, so long tables/code blocks may be cut at page boundaries. Production-grade print layout can be replaced with native printing or server-side rendering.
 
 ### 11.3 DOCX
 
-- 使用 `docx` 将 mdast 映射为 Word 元素：
+- Use `docx` to map mdast to Word elements:
   - Heading → `HeadingLevel`
-  - 段落/引用/列表 → 带缩进、边框、项目符号的 Paragraph
-  - 表格 → Table / TableRow / TableCell
-  - 代码 → 深色底、等宽字体
-  - TOC → Word `TableOfContents` 字段
-- 数学以 `$...$` / `$$...$$` 文本保留，Mermaid 以代码块保留；不承诺 Word 内部的图形/公式可视化。这与“导出语义内容”的定位一致。
-- 页眉、页脚、页码由 docx Header/Footer 生成。
+  - Paragraph/quote/list → Paragraph with indentation, borders, and bullets
+  - Table → Table / TableRow / TableCell
+  - Code → dark background, monospace font
+  - TOC → Word `TableOfContents` field
+- Math is preserved as `$...$` / `$$...$$` text, and Mermaid is preserved as code blocks; no visualization of graphics/formulas inside Word is promised. This is consistent with the positioning of "exporting semantic content".
+- Headers, footers, and page numbers are generated by docx Header/Footer.
 
-### 11.4 安全
+### 11.4 Security
 
-- 导出 HTML 的标题、内容文本均经过 remark-rehype 转义；不启用 raw HTML。
-- Mermaid `securityLevel: 'strict'`。
-- 外部图片 URL 保持原样；相对工作区图片内联为 Data URL，保证导出文件可携带。
-- 导出过程全在浏览器内存中完成，不经过服务器。
+- Titles and content text of the exported HTML are escaped by remark-rehype; raw HTML is not enabled.
+- Mermaid `securityLevel: 'strict'`.
+- External image URLs are kept as-is; workspace-relative images are inlined as Data URLs so the exported file is self-contained.
+- The whole export process happens in browser memory and never goes through a server.
 
 ---
 
-## 12. 数据与隐私
+## 12. Data and Privacy
 
-| 数据 | 位置 | 说明 |
+| Data | Location | Notes |
 | --- | --- | --- |
-| 文档正文 | 用户本地 Markdown 文件 | 只有显式保存/导出才落盘 |
-| 会话草稿 | 浏览器 IndexedDB（`mdstudio.session.v3` 元数据 + 每文档一条记录） | 刷新恢复；约 32 MB 估算上限；退出时另写 localStorage 同步备份 |
-| 偏好 | 浏览器 `localStorage` | 主题、字号、视图、同步、预览缩放、图片目录 |
-| 工作区句柄 | IndexedDB（Web） | 仅保存浏览器授权句柄，不保存文件副本 |
-| 上次工作区 | `userData/last-workspace.json`（桌面） | 只保存目录路径，用于启动恢复 |
-| 图片缓存 | 内存 Object URL / Data URL | 页面关闭即释放 |
-| 搜索索引 | 内存 | 不持久化 |
+| Document body | The user's local Markdown files | Written to disk only on explicit save/export |
+| Session draft | Browser IndexedDB (`mdstudio.session.v3` metadata + one record per document) | Restored on refresh; ~32 MB estimated limit; a synchronous localStorage backup is also written on exit |
+| Preferences | Browser `localStorage` | Theme, font size, view, sync, preview zoom, image directory |
+| Workspace handle | IndexedDB (Web) | Stores only the browser authorization handle, not file copies |
+| Last workspace | `userData/last-workspace.json` (desktop) | Stores only the directory path, used for startup restore |
+| Image cache | In-memory Object URL / Data URL | Released when the page closes |
+| Search index | Memory | Not persisted |
 
-没有业务服务器、遥测、账号和云端上传。外部图片或链接只会在用户主动插入并渲染时由浏览器访问对应 URL。
-
----
-
-## 13. 性能策略与实测
-
-### 13.1 策略
-
-- CodeMirror 只渲染视口内的行，大文档不创建 5 万个 DOM 节点。
-- 实时装饰只在 `docChanged / selectionSet / viewportChanged` 时重建，且只遍历“视口 + 选区所在行”的语法树窗口，长文档不再每次光标移动都遍历全文。
-- 预览使用 `useDeferredValue` + `React.memo`，避免每次按键都同步阻塞预览。
-- `PreviewPane`（react-markdown / KaTeX / Mermaid）与导出流水线（unified / highlight.js / docx）均按需动态加载；首屏只包含 React、CodeMirror 与编辑器外壳。
-- 统计基于 `useDeferredValue`，不在输入路径做昂贵 DOM 查询。
-- Mermaid、jsPDF、html2canvas、docx 全部按需动态导入。
-- 搜索在 Worker 中执行，主线程只负责渲染命中结果。
-- 外部同步轮询只扫描元数据，打开文档只有 `lastModified` 变化时才重新读取。
-
-### 13.2 实测数据
-
-环境：macOS，Chrome headless（桌面尺寸 1440×900），本地生产预览（`vite preview`），2026-11-09。
-
-> 下表是 2.0.0 的历史测量。2026-11-10 的构建已把首屏 JS 从 1,514.81 kB（gzip 494.85 kB）降到 entry 118.27 kB（gzip 36.93 kB）、首屏合计约 288 kB gzip；交互延迟尚未重新测量，发布前应补一轮基线。
-
-| 指标 | 结果 |
-| --- | --- |
-| 首次可交互到编辑器 | ~193 ms |
-| 首次可交互到预览 | ~207 ms |
-| 资源传输量（本地） | ~747 KB |
-| 约 6.5 万字符文档加载 | ~60 ms |
-| 1 秒滚动帧数 | 60 帧 |
-| 平均帧间隔 / 最大帧间隔 | 16.5 ms / 16.8 ms |
-| 连续输入期间 long task | 0 条（PerformanceObserver） |
-| 搜索（示例工作区 5 文件） | ~1 ms（Worker 内部计时） |
-
-> 这些数字是本地开发机测量，不代表网络部署或低端设备。冷启动目标 < 1.5 s 在当前构建下达成；搜索结果的时间不含首次磁盘索引。
+There is no business server, telemetry, account, or cloud upload. External images or links are only fetched by the browser from the corresponding URL when the user actively inserts them and they are rendered.
 
 ---
 
-## 14. 工程化质量
+## 13. Performance Strategy and Measurements
 
-### 14.1 脚本
+### 13.1 Strategy
 
-| 命令 | 内容 |
+- CodeMirror renders only the lines in the viewport, so a large document does not create 50,000 DOM nodes.
+- Live decorations are rebuilt only on `docChanged / selectionSet / viewportChanged`, and traverse only the syntax-tree window of "viewport + selection lines", so long documents no longer walk the whole text on every cursor move.
+- Preview uses `useDeferredValue` + `React.memo`, so every keystroke does not synchronously block the preview.
+- `PreviewPane` (react-markdown / KaTeX / Mermaid) and the export pipeline (unified / highlight.js / docx) are all loaded dynamically on demand; the first screen contains only React, CodeMirror, and the editor shell.
+- Statistics are based on `useDeferredValue` and do not perform expensive DOM queries on the input path.
+- Mermaid, jsPDF, html2canvas, and docx are all dynamically imported on demand.
+- Search runs in a Worker; the main thread is only responsible for rendering hits.
+- External sync polling scans metadata only, and open documents are re-read only when `lastModified` changes.
+
+### 13.2 Measured Data
+
+Environment: macOS, Chrome headless (desktop size 1440×900), local production preview (`vite preview`), 2026-11-09.
+
+> The table below shows historical measurements for 2.0.0. The 2026-11-10 build has reduced first-screen JS from 1,514.81 kB (gzip 494.85 kB) to an entry of 118.27 kB (gzip 36.93 kB), about 288 kB gzip in total for the first screen; interaction latency has not been re-measured, and a baseline round should be added before release.
+
+| Metric | Result |
 | --- | --- |
-| `npm run dev` | 开发服务器 |
-| `npm run build` | `tsc --noEmit` + Vite 构建 |
-| `npm run typecheck` | TypeScript 严格检查 |
+| First interactive to editor | ~193 ms |
+| First interactive to preview | ~207 ms |
+| Asset transfer (local) | ~747 KB |
+| ~65k-character document load | ~60 ms |
+| Frames in 1 second of scrolling | 60 frames |
+| Average frame interval / max frame interval | 16.5 ms / 16.8 ms |
+| Long tasks during continuous typing | 0 (PerformanceObserver) |
+| Search (5-file sample workspace) | ~1 ms (timed inside the Worker) |
+
+> These numbers were measured on a local development machine and do not represent network deployments or low-end devices. The cold-start goal of < 1.5 s is met on the current build; search timings exclude the first disk index build.
+
+---
+
+## 14. Engineering Quality
+
+### 14.1 Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Development server |
+| `npm run build` | `tsc --noEmit` + Vite build |
+| `npm run typecheck` | Strict TypeScript check |
 | `npm run lint` | ESLint 10 + TypeScript + React Hooks |
 | `npm test` | Vitest |
 | `npm run ci` | lint + typecheck + test + build |
-| `npm run desktop:dev` | 启动 Vite 与 Electron 开发窗口 |
-| `npm run desktop` | 构建后启动 Electron（加载本地 `dist`） |
-| `npm run desktop:package` | 构建 `.app`、ad-hoc 签名、ZIP、DMG |
-| `npm run dist:win` | 构建 Windows x64 NSIS 安装版和便携版 |
+| `npm run desktop:dev` | Starts Vite and the Electron dev window |
+| `npm run desktop` | Builds then starts Electron (loads local `dist`) |
+| `npm run desktop:package` | Builds `.app`, ad-hoc signing, ZIP, DMG |
+| `npm run dist:win` | Builds the Windows x64 NSIS installer and portable |
 
-### 14.2 测试覆盖
+### 14.2 Test Coverage
 
-当前 **93 个测试**：
+Currently **93 tests**:
 
-- 工作区 store：稳定 id、派生 dirty、切换前 dirty 收集、并发打开去重、失效路径转离线草稿、扫描签名不变时跳过更新。
-- 工作区动作：切换前落盘顺序、写入失败中止切换、未连接时拒绝切换、按 id 保存、按发起文档解析图片路径、图片文件路由到查看器。
-- 工作区树索引：路径索引、文件/目录查找、Markdown / 图片文件分类、签名随元数据变化。
-- 图片路径与格式：`./` / `../` / 根路径解析、同名图片候选、外部与 Data URL、Markdown 目的地转义、预览 URL 协议白名单。
-- 缩放计算：预览缩放范围/步进/百分比、图片查看器缩放与适应窗口。
-- 会话持久化：旧格式迁移、字段规范化、UTF-8 字节计量、按文档引用差异计算写入集合。
-- 搜索索引：基准索引、未保存覆盖、覆盖撤销、无上限匹配路径、正则/大小写与非法正则。
-- Markdown 统计规则：中文、英文、段落、空文档。
-- Markdown 大纲与 slug：重复标题、代码块内标题、CJK。
-- 编辑器命令：标题、粗体、列表、任务列表、缩进转换。
-- 工作区搜索核心：普通文本、正则、大小写、超长行上下文、错误正则、单行多处命中、结果截断。
-- 文件内查找核心：普通文本、大小写、全字匹配、正则、零宽匹配、替换与捕获组。
-- 预览内查找核心：DOM 文本索引、块级分隔、命中到 Range 的映射、噪音节点过滤。
-- 文件系统服务（Web）：使用内存 Fake FileSystemHandle 覆盖 open/scan/read/write/create/rename/delete/image，避免依赖真实目录。
-- 文件系统服务（Electron）：在临时目录中验证 Node 原生扫描、读写、CRUD、图片、搜索读取、路径逃逸与符号链接逃逸防护。
-- React 基础组件：`SegmentedControl` 的 ARIA 与变更回调。
+- Workspace store: stable ids, derived dirty, dirty collection before switching, de-duplication of concurrent opens, invalid paths becoming offline drafts, skipping updates when the scan signature is unchanged.
+- Workspace actions: flush ordering before switching, aborting a switch on write failure, rejecting switches when not connected, saving by id, resolving image paths by the originating document, routing image files to the viewer.
+- Workspace tree index: path index, file/directory lookup, Markdown / image file classification, signature changing with metadata.
+- Image paths and formats: `./` / `../` / root path resolution, same-name image candidates, external and Data URLs, Markdown destination escaping, preview URL protocol allowlist.
+- Zoom computation: preview zoom range/step/percentage, image viewer zoom and fit-to-window.
+- Session persistence: legacy format migration, field normalization, UTF-8 byte accounting, computing the write set from per-document reference differences.
+- Search index: baseline index, unsaved overrides, override reset, unlimited matching paths, regex/case sensitivity and invalid regex.
+- Markdown statistics rules: Chinese, English, paragraphs, empty documents.
+- Markdown outline and slug: duplicate headings, headings inside code blocks, CJK.
+- Editor commands: headings, bold, lists, task lists, indent conversion.
+- Workspace search core: plain text, regex, case sensitivity, very long line context, invalid regex, multiple hits on a single line, result truncation.
+- Find-in-file core: plain text, case sensitivity, whole word, regex, zero-width matches, replacement and capture groups.
+- Find-in-preview core: DOM text index, block-level separators, mapping hits to Ranges, filtering noise nodes.
+- File system service (Web): uses an in-memory Fake FileSystemHandle to cover open/scan/read/write/create/rename/delete/image, avoiding dependence on real directories.
+- File system service (Electron): verifies Node-native scanning, reading/writing, CRUD, images, search reads, path escapes, and symlink escape protection in a temporary directory.
+- React base components: `SegmentedControl` ARIA and change callbacks.
 
 ### 14.3 CI
 
-`.github/workflows/ci.yml` 在 Node 22 / Ubuntu 上执行：
+`.github/workflows/ci.yml` runs on Node 22 / Ubuntu:
 
 ```text
-npm ci（跳过 Electron 二进制下载）→ lint → typecheck → test → build
+npm ci (skip the Electron binary download) → lint → typecheck → test → build
 ```
 
-CI 负责 Web 构建与 93 个测试；桌面安装包在 macOS 构建机执行 `npm run desktop:package`（macOS）或 `npm run dist:win`（Windows）。
+CI covers the Web build and the 93 tests; desktop installers are produced on a macOS build machine via `npm run desktop:package` (macOS) or `npm run dist:win` (Windows).
 
-### 14.4 手工验收
+### 14.4 Manual Acceptance
 
-- Chrome headless 验证：分屏、写作、预览、移动端、深色模式、搜索、设置、导出。
-- Chrome headless 验证图片链路：预览缩放（按钮 / Ctrl+滚轮 / 持久化）、插入图片路径提示与同名候选、文件树图片 / Markdown 图片 / 图片链接在预览区内打开、查看器边界与 Esc 返回、图片查看器按钮与滚轮缩放、无文档时占满主区域、移动端布局。
-- 使用内存 Fake FileSystemHandle 验证：打开工作区、文件树、外部修改同步、新建、重命名、删除、拖拽移动、图片粘贴、全部替换；并用内存图片文件验证本地 Markdown 图片、SVG 预览、插入对话框缩略图与相对路径插入。
-- 验证 PDF、PNG、HTML、DOCX 实际下载；DOCX 使用 `python-docx` 检查 Heading、表格、页眉页脚和段落结构。
-- 打包后的 Electron 应用通过远程调试验证：原生工作区扫描、文件保存写盘、图片粘贴写盘、全局搜索、上次工作区恢复；并从 DMG 挂载启动验证。
-- `codesign --verify` 通过；`hdiutil verify` 校验 DMG 通过；ZIP 解压出的 `.app` 可启动。
-- Windows 安装器和便携版通过 7-Zip `t` 完整性测试；确认 NSIS 归档内的 `MarkdownStudio.exe` 是 x86-64 PE、`resources/app.asar` 包含 `electron/` 与 `dist/`。由于构建机是 macOS，未做 Windows 启动/安装实机回归。
+- Chrome headless verification: split view, writing, preview, mobile, dark mode, search, settings, export.
+- Chrome headless verification of the image chain: preview zoom (buttons / Ctrl+wheel / persistence), insert-image path hints and same-name candidates, image files in the file tree / Markdown images / image links opening inside the preview pane, viewer boundaries and Esc to return, image viewer buttons and wheel zoom, filling the main area when there is no document, mobile layout.
+- Verification with an in-memory Fake FileSystemHandle: opening a workspace, file tree, external-change sync, create, rename, delete, drag-to-move, image pasting, Replace All; plus in-memory image files to verify local Markdown images, SVG preview, insert-dialog thumbnails, and relative-path insertion.
+- Verify actual downloads of PDF, PNG, HTML, and DOCX; DOCX is checked with `python-docx` for headings, tables, headers/footers, and paragraph structure.
+- The packaged Electron app is verified via remote debugging: native workspace scanning, file save to disk, image paste to disk, global search, last-workspace restore; and it is verified by launching from the mounted DMG.
+- `codesign --verify` passes; `hdiutil verify` validates the DMG; the `.app` extracted from the ZIP launches.
+- The Windows installer and portable build pass the 7-Zip `t` integrity test; `MarkdownStudio.exe` inside the NSIS archive is confirmed to be an x86-64 PE, and `resources/app.asar` contains `electron/` and `dist/`. Because the build machine is macOS, no on-device Windows launch/install regression was performed.
 
 ---
 
-## 15. PRD 验收映射
+## 15. PRD Acceptance Mapping
 
-图例：✅ 已实现并验证；◐ 已实现但存在浏览器/产品边界；— 不属于本期范围。
+Legend: ✅ implemented and verified; ◐ implemented but with a browser/product boundary; — out of scope for this release.
 
-| PRD | 子项 | 状态 | 实现说明 |
+| PRD | Item | Status | Implementation notes |
 | --- | --- | --- | --- |
-| 1.1 | 实时渲染、标记隐藏/恢复 | ✅ | `livePreview.ts`；非活动行隐藏，活动行淡化并保留编辑能力 |
-| 1.1 AC1 | 标题即时样式 | ✅ | `ATXHeading` 行装饰 + `HeaderMark` 隐藏 |
-| 1.1 AC2 | 光标回到标题行恢复标记 | ✅ | selection 变化重建装饰 |
-| 1.1 AC3 | 切换无闪烁/光标错位 | ✅ | CodeMirror 原生装饰机制，不重建编辑器 |
-| 1.2 AC1 | 有序列表续行 | ✅ | `markdownKeymap` / `insertNewlineContinueMarkup` |
-| 1.2 AC2 | 任务列表续行 | ✅ | 同上，保持 `[ ]` |
-| 1.2 AC3 | Tab / Shift+Tab 层级 | ✅ | `indentMore` / `indentLess` |
-| 2.1 AC1 | 行内 LaTeX | ✅ | remark-math + KaTeX |
-| 2.1 AC2 | 块级 LaTeX | ✅ | `$$...$$` + KaTeX display |
-| 2.2 AC1 | Mermaid 实时矢量图 | ✅ | 动态 Mermaid，黑白主题 |
-| 2.2 AC2 | Mermaid 错误提示 | ✅ | 错误卡片 + 源码，不崩溃 |
-| 2.3 AC1 | 粘贴截图写入 assets | ✅ | Fake FS 与浏览器路径验证 |
-| 2.3 AC2 | 图片保存路径设置 | ◐ | 支持工作区相对路径/`/assets`；浏览器安全模型不允许写入工作区外任意绝对路径 |
-| 2.3 AC3（扩展） | 插入图片按路径提示 | ✅ | 解析相对 / 根路径，提示同名图片、候选相对路径与格式 |
-| 2.3 AC4（扩展） | 图片格式文件预览 | ✅ | PNG / JPEG / GIF / WebP / SVG / AVIF / BMP / ICO / APNG；文件树、本地图片链接与预览图片均在预览区内打开查看器 |
-| 1.3 AC1（扩展） | 预览缩放 | ✅ | 50%–300%，偏好持久化，`⌘ / Ctrl` + 滚轮 |
-| 3.1 AC1 | 文件树打开文件 | ✅ | File Tree + tabs |
-| 3.1 AC2 | 新建文件/文件夹（快捷键/右键） | ✅ | 侧栏按钮、右键菜单、`⇧⌘N` |
-| 3.1 AC3 | 外部文件变更同步 | ◐ | 5s 轮询 + 未 dirty 文档自动刷新；不是 OS 级 watcher |
-| 3.2 AC1 | 1000+ 文件全局搜索 | ◐ | 后台索引 + Worker；首次索引耗时取决于磁盘，之后查询毫秒级 |
-| 3.2 AC2 | 全部替换 / 逐条替换 | ✅ | 跳过 dirty 文档并提示 |
-| 3.2 AC3（扩展） | 文件内查找 / 替换 / 命中高亮 | ✅ | `⌘F` / `⌘⌥F`；`findCore` + CodeMirror StateField |
-| 3.2 AC4（扩展） | 预览内查找 / 高亮 / 不切换视图 | ✅ | CSS Custom Highlight API + DOM Range；仅查找 |
-| 4.1 AC1 | PDF 排版一致 | ◐ | html2canvas 高保真快照，但分页是像素切片 |
-| 4.1 AC2 | 页眉/页脚/目录选项 | ✅ | HTML/PDF/PNG + DOCX 字段 |
-| 5.1 AC1 | 中文/英文/字符/段落统计 | ✅ | `stats.ts`，规则在状态栏 tooltip 与文档中说明 |
-| 5.1 AC2 | 实时更新且不卡顿 | ✅ | `useDeferredValue` + 纯函数计数 |
-| NFR | 冷启动 < 1.5s | ✅ | 本地生产预览 193ms 到编辑器 |
-| NFR | 5 万字滚动 60 FPS | ✅ | CodeMirror 虚拟化；实测 60 帧/秒 |
-| NFR | Windows/macOS/Linux | ◐ | 已发布 macOS Apple Silicon 和 Windows x64 安装包；Windows 包未实机回归；Linux 桌面包未构建 |
-| NFR | 纯本地数据 | ✅ | 无业务后端；会话也只写入浏览器本地 |
+| 1.1 | Live rendering, mark hiding/restoration | ✅ | `livePreview.ts`; inactive lines hidden, active lines dimmed while staying editable |
+| 1.1 AC1 | Instant heading styling | ✅ | `ATXHeading` line decorations + `HeaderMark` hiding |
+| 1.1 AC2 | Marks restored when the cursor returns to a heading line | ✅ | decorations rebuilt on selection change |
+| 1.1 AC3 | No flicker / cursor misplacement when switching | ✅ | CodeMirror's native decoration mechanism; the editor is not rebuilt |
+| 1.2 AC1 | Ordered list continuation | ✅ | `markdownKeymap` / `insertNewlineContinueMarkup` |
+| 1.2 AC2 | Task list continuation | ✅ | Same as above, keeping `[ ]` |
+| 1.2 AC3 | Tab / Shift+Tab levels | ✅ | `indentMore` / `indentLess` |
+| 2.1 AC1 | Inline LaTeX | ✅ | remark-math + KaTeX |
+| 2.1 AC2 | Block LaTeX | ✅ | `$$...$$` + KaTeX display |
+| 2.2 AC1 | Live Mermaid vector diagrams | ✅ | Dynamic Mermaid, black-and-white theme |
+| 2.2 AC2 | Mermaid error hints | ✅ | Error card + source, no crash |
+| 2.3 AC1 | Pasted screenshots written to assets | ✅ | Verified with Fake FS and the browser path |
+| 2.3 AC2 | Image save path setting | ◐ | Supports workspace-relative paths/`/assets`; the browser security model does not allow writing to arbitrary absolute paths outside the workspace |
+| 2.3 AC3 (extension) | Path hints when inserting images | ✅ | Resolves relative / root paths, hints same-name images, candidate relative paths, and formats |
+| 2.3 AC4 (extension) | Preview of image-format files | ✅ | PNG / JPEG / GIF / WebP / SVG / AVIF / BMP / ICO / APNG; file tree, local image links, and preview images all open the viewer inside the preview pane |
+| 1.3 AC1 (extension) | Preview zoom | ✅ | 50%–300%, persisted in preferences, `⌘ / Ctrl` + wheel |
+| 3.1 AC1 | Open files from the file tree | ✅ | File Tree + tabs |
+| 3.1 AC2 | Create file/folder (shortcut/context menu) | ✅ | Sidebar buttons, context menu, `⇧⌘N` |
+| 3.1 AC3 | External file change sync | ◐ | 5 s polling + auto-refresh of non-dirty documents; not an OS-level watcher |
+| 3.2 AC1 | 1000+ file global search | ◐ | Background index + Worker; the first index build depends on disk, later queries are millisecond-level |
+| 3.2 AC2 | Replace All / replace one | ✅ | Skips dirty documents and says so |
+| 3.2 AC3 (extension) | Find / replace / match highlighting in file | ✅ | `⌘F` / `⌘⌥F`; `findCore` + CodeMirror StateField |
+| 3.2 AC4 (extension) | Find / highlight in preview without switching views | ✅ | CSS Custom Highlight API + DOM Range; find only |
+| 4.1 AC1 | Consistent PDF layout | ◐ | High-fidelity html2canvas snapshot, but pagination slices by pixels |
+| 4.1 AC2 | Header/footer/TOC options | ✅ | HTML/PDF/PNG + DOCX fields |
+| 5.1 AC1 | Chinese/English/character/paragraph statistics | ✅ | `stats.ts`, rules explained in the status bar tooltip and in the docs |
+| 5.1 AC2 | Live updates without jank | ✅ | `useDeferredValue` + pure-function counting |
+| NFR | Cold start < 1.5s | ✅ | 193 ms to editor on local production preview |
+| NFR | 60 FPS scrolling at 50k characters | ✅ | CodeMirror virtualization; measured 60 frames/second |
+| NFR | Windows/macOS/Linux | ◐ | macOS Apple Silicon and Windows x64 installers released; the Windows package lacks on-device regression; the Linux desktop package is not built |
+| NFR | Purely local data | ✅ | No business backend; sessions are also written only to browser-local storage |
 
 ---
 
-## 16. 已知限制与后续路线
+## 16. Known Limitations and Roadmap
 
-### 16.1 已知限制
+### 16.1 Known Limitations
 
-1. **分发签名**：当前 `.app`/`.dmg` 使用 ad-hoc 签名，没有 Apple Developer ID 与公证；首次打开可能被 Gatekeeper 拦截，需要右键 →「打开」。要面向公众分发，需要开发者证书、`notarytool` 和 Stapling。
-2. **macOS Apple Silicon only**：macOS 安装包为 arm64；Intel Mac 需要 x64/Universal 构建。Windows 包为 x64。
-3. **Windows 包未实机验证 / 未签名**：已在 macOS 上交叉构建并通过归档结构校验，但未在 Windows 10/11 上执行安装与启动回归；也没有 Windows 代码签名证书，SmartScreen 会提示未知发布者。
-4. **绝对图片路径**：桌面原生桥仍把资源写入当前工作区，不允许工作区外的任意绝对路径；这是有意的安全边界。
-5. **Web 浏览器目录能力**：File System Access API 只在 Chromium 系浏览器完整可用；Safari/Firefox 只提供示例/草稿编辑。
-6. **外部同步是轮询**：默认 5 秒，不是实时文件监听；大目录扫描与同步会产生周期性开销。
-7. **首次搜索索引**：取决于磁盘 I/O；UI 有进度提示，查询本身在 Worker 中完成。
-8. **PDF 分页**：像素切片可能切断长表格/代码块；页眉页脚与目录支持已实现。
-9. **图片格式边界**：图片预览依赖 Chromium 解码能力，白名单为 PNG / JPEG / GIF / WebP / SVG / AVIF / BMP / ICO / APNG；HEIC、TIFF 等格式暂不支持。桌面端超过 25 MB 的资源不会读取为 Data URL。
-9. **DOCX 富内容**：Mermaid 以代码、数学以文本保留；Word 内不执行 Mermaid/KaTeX 渲染。
-10. **切换 tab 的编辑历史**：每个文档使用新的 CodeMirror 实例，撤销历史不跨 tab 保留（符合多数编辑器的会话行为）。
-11. **导出 HTML 的数学字体**：依赖 KaTeX CDN；离线查看 HTML 时公式可能需要字体回退。
-12. **会话快照大小**：IndexedDB 上限 32 MB（按 UTF-8 字节）；退出时的 localStorage 兜底备份仍受浏览器配额限制。
-13. **没有后端/协作/云同步**：这是产品定位，不是缺陷。
+1. **Distribution signing**: the current `.app`/`.dmg` uses ad-hoc signing with no Apple Developer ID or notarization; the first launch may be blocked by Gatekeeper and require right-click → "Open". Public distribution requires a developer certificate, `notarytool`, and stapling.
+2. **macOS Apple Silicon only**: the macOS installer is arm64; Intel Macs need an x64/Universal build. The Windows package is x64.
+3. **Windows package not verified on device / unsigned**: it has been cross-built on macOS and validated by archive structure, but install and launch regression has not been run on Windows 10/11; there is also no Windows code-signing certificate, so SmartScreen will show an unknown publisher warning.
+4. **Absolute image paths**: the desktop native bridge still writes assets into the current workspace and does not allow arbitrary absolute paths outside it; this is an intentional security boundary.
+5. **Web browser directory capability**: the File System Access API is fully available only in Chromium-based browsers; Safari/Firefox only offer sample/draft editing.
+6. **External sync is polling**: 5 seconds by default, not real-time file watching; scanning and syncing large directories incurs periodic overhead.
+7. **First search index**: depends on disk I/O; the UI shows progress, and the queries themselves run in the Worker.
+8. **PDF pagination**: pixel slicing may cut through long tables/code blocks; header, footer, and TOC support is implemented.
+9. **Image format boundaries**: image preview depends on Chromium's decoding capability, with an allowlist of PNG / JPEG / GIF / WebP / SVG / AVIF / BMP / ICO / APNG; formats such as HEIC and TIFF are not supported yet. On desktop, assets larger than 25 MB are not read as Data URLs.
+9. **DOCX rich content**: Mermaid is kept as code and math as text; Mermaid/KaTeX rendering is not performed inside Word.
+10. **Edit history when switching tabs**: each document uses a new CodeMirror instance, so undo history is not preserved across tabs (consistent with the session behavior of most editors).
+11. **Math fonts in exported HTML**: depends on the KaTeX CDN; viewing the HTML offline may require font fallbacks for formulas.
+12. **Session snapshot size**: the IndexedDB limit is 32 MB (in UTF-8 bytes); the localStorage fallback backup on exit is still bounded by browser quota.
+13. **No backend/collaboration/cloud sync**: this is the product positioning, not a defect.
 
-### 16.2 路线图
+### 16.2 Roadmap
 
-- **Windows 实机回归与签名**：在 Windows 11 x64/ARM64 上验证安装、升级、卸载、文件读写与 PDF 导出，并配置 Authenticode 证书。
-- **Linux 桌面构建**：在 CI matrix 中生成 AppImage/deb。
-- **Developer ID 签名与公证**：正式分发、自动更新与 Gatekeeper 无提示启动。
-- **原生文件监听**：以 FSEvents/chokidar 替代 5 秒轮询。
-- **增量搜索索引**：目录级 mtime + 文件级 cache，避免重建全量索引。
-- **PDF 原生分页**：用 Chromium Print 或服务端排版替代 canvas 切片。
-- **文档历史**：本地版本快照与 diff。
-- **可选同步层**：保持核心 local-first，在其上增加插件化的远程同步。
-- **更多语法**：脚注、定义列表、Front Matter UI、PlantUML。
+- **Windows on-device regression and signing**: verify install, upgrade, uninstall, file read/write, and PDF export on Windows 11 x64/ARM64, and configure an Authenticode certificate.
+- **Linux desktop build**: produce AppImage/deb in the CI matrix.
+- **Developer ID signing and notarization**: for official distribution, auto-update, and Gatekeeper-silent launch.
+- **Native file watching**: replace 5-second polling with FSEvents/chokidar.
+- **Incremental search index**: directory-level mtime + file-level cache to avoid rebuilding the full index.
+- **Native PDF pagination**: replace canvas slicing with Chromium Print or server-side layout.
+- **Document history**: local version snapshots and diffs.
+- **Optional sync layer**: keep the core local-first, adding plugin-based remote sync on top.
+- **More syntax**: footnotes, definition lists, Front Matter UI, PlantUML.
 
 ---
 
-## 17. 关键架构决策（ADR 摘要）
+## 17. Key Architecture Decisions (ADR Summary)
 
-| 决策 | 选择 | 理由 |
+| Decision | Choice | Rationale |
 | --- | --- | --- |
-| 编辑器内核 | CodeMirror 6 而非完整 WYSIWYG 框架 | 保留 Markdown 源文本、超大文档性能好、装饰 API 可控；用 live preview 实现“半所见即所得” |
-| 预览渲染 | react-markdown + unified | 与 React 组件边界自然，KaTeX/GFM 生态成熟 |
-| 状态 | Zustand，而非把所有编辑器状态塞进 React Context | 高频更新下 selector 粒度细，EditorView 不进 React 状态 |
-| 文件系统 | Web 用 File System Access API；桌面用 Electron IPC | 同一套 React 代码同时覆盖浏览器与原生桌面；桌面端直接使用 Node fs 与原生对话框 |
-| 搜索 | Web Worker | 1000+ 文件查询不能阻塞输入 |
-| 导出 | 浏览器端动态依赖 | 零服务端、数据不离开设备；Mermaid/PDF DOCX 依赖均拆分 chunk |
-| 主题 | CSS Custom Properties | 黑白主题、导出和组件样式共享同一套 token |
-| 会话 | IndexedDB 快照 + localStorage 同步备份 + 句柄/路径配置 | 大文档不再受 localStorage 4–5 MB 限制；退出兜底保证强退可恢复 |
+| Editor core | CodeMirror 6 instead of a full WYSIWYG framework | Keeps the Markdown source text, performs well on very large documents, controllable decoration API; live preview delivers "semi-WYSIWYG" |
+| Preview rendering | react-markdown + unified | Natural fit with React component boundaries; mature KaTeX/GFM ecosystem |
+| State | Zustand, rather than stuffing all editor state into React Context | Fine-grained selectors under high-frequency updates; EditorView stays out of React state |
+| File system | File System Access API on the Web; Electron IPC on desktop | The same React code covers both browser and native desktop; desktop uses Node fs and native dialogs directly |
+| Search | Web Worker | Queries over 1000+ files must not block typing |
+| Export | Browser-side dynamic dependencies | Zero server, data never leaves the device; Mermaid/PDF/DOCX dependencies are all split into chunks |
+| Theme | CSS Custom Properties | Black-and-white themes, export, and component styles share the same set of tokens |
+| Session | IndexedDB snapshot + synchronous localStorage backup + handle/path config | Large documents are no longer limited by the 4–5 MB localStorage limit; the exit fallback guarantees recovery after a forced quit |
 
 ---
 
-## 18. 构建与部署
+## 18. Build and Deployment
 
 ```bash
-# 开发
+# Development
 npm run dev
 
-# 质量闸门
+# Quality gate
 npm run ci
 
-# 生产构建
+# Production build
 npm run build
 npm run preview
 ```
 
-Web 产物为 `dist/` 的静态站点，没有路由，可直接部署到任意静态托管。`base` 已设为 `./`，同时适配站点根路径与 Electron `file://` 加载。
+The Web artifact is a static site in `dist/` with no routing, deployable to any static host. `base` is set to `./`, so it works both at a site root path and when loaded via `file://` in Electron.
 
-桌面构建：
+Desktop build:
 
 ```bash
-# 开发（Vite + Electron 窗口）
+# Development (Vite + Electron window)
 npm run desktop:dev
 
-# 打包：.app + .zip + .dmg（ad-hoc 签名）
+# Package: .app + .zip + .dmg (ad-hoc signed)
 npm run desktop:package
 
-# Windows x64：NSIS 安装版 + 便携版
+# Windows x64: NSIS installer + portable
 npm run dist:win
 ```
 
-产物在 `release/`：
+Artifacts are in `release/`:
 
-- macOS：`Markdown-studio-2.0.0-arm64.dmg`、`Markdown-studio-2.0.0-arm64.zip`、`release/mac-arm64/Markdown studio.app`
-- Windows：`Markdown-studio-2.0.0-x64-setup.exe`、`Markdown-studio-2.0.0-x64-portable.exe`
+- macOS: `Markdown-studio-2.0.0-arm64.dmg`, `Markdown-studio-2.0.0-arm64.zip`, `release/mac-arm64/Markdown studio.app`
+- Windows: `Markdown-studio-2.0.0-x64-setup.exe`, `Markdown-studio-2.0.0-x64-portable.exe`
 
-正式对外分发前，macOS 应使用 Apple Developer ID 重新签名并公证；Windows 应使用 Authenticode 证书签名并在 Windows 实机回归。
+Before official public distribution, macOS should be re-signed and notarized with an Apple Developer ID; Windows should be signed with an Authenticode certificate and go through on-device regression.
 
-生产环境建议：
+Production recommendations:
 
-- 使用 HTTPS（File System Access API 仅安全上下文可用；`localhost` 例外）。
-- 禁止将用户 Markdown 上传到 CDN/日志。
-- 如果嵌入 iframe，需要允许 `clipboard-read` / `clipboard-write` 与目录选择权限策略。
-- 桌面安装包需要保留 `contextIsolation`，不要在 preload 中暴露 `fs` 或任意 IPC。
+- Use HTTPS (the File System Access API is available only in secure contexts; `localhost` is the exception).
+- Do not upload user Markdown to a CDN or logs.
+- If embedding in an iframe, allow the `clipboard-read` / `clipboard-write` and directory-picker permission policies.
+- Desktop installers must keep `contextIsolation`; do not expose `fs` or arbitrary IPC in preload.
 
 ---
 
-## 19. 变更记录
+## 19. Changelog
 
-| 版本 | 日期 | 描述 |
+| Version | Date | Description |
 | --- | --- | --- |
-| 2.0.0+ | 2026-11-10 | 架构优化（源码改动，安装包仍为 2.0.0）：稳定文档 id、切换工作区前落盘、IndexedDB 按文档会话、Worker 常驻索引与匹配路径协议、桌面原生文件监听、视口级装饰、并行扫描、Electron 安全加固与构建分块；详见 [优化清单](./OPTIMIZATION-CHECKLIST.md) |
-| 2.0.0 | 2026-11-09 | React + TypeScript 工程化重写；macOS 与 Windows Electron 桌面应用；本地工作区、搜索、导出、LaTeX、Mermaid、会话恢复 |
-| 1.x | 2026-11-09 | 早期静态原型（已归档，不在当前源码树中） |
+| 2.0.0+ | 2026-11-10 | Architecture optimization (source changes, installers remain 2.0.0): stable document ids, flush before switching workspaces, per-document IndexedDB sessions, resident Worker index and matching-paths protocol, desktop native file watching, viewport-level decorations, parallel scanning, Electron security hardening and build chunking; see the [optimization checklist](./OPTIMIZATION-CHECKLIST.md) |
+| 2.0.0 | 2026-11-09 | React + TypeScript engineering rewrite; macOS and Windows Electron desktop apps; local workspace, search, export, LaTeX, Mermaid, session recovery |
+| 1.x | 2026-11-09 | Early static prototype (archived, no longer in the current source tree) |
