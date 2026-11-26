@@ -14,9 +14,9 @@ It ships as a **macOS desktop app, a Windows x64 installer, and a web app**.
 
 | Package | Description |
 | --- | --- |
-| [Markdown-studio-2.0.1-arm64.dmg](release/Markdown-studio-2.0.1-arm64.dmg) | Recommended; drag it into Applications |
-| [Markdown-studio-2.0.1-arm64.zip](release/Markdown-studio-2.0.1-arm64.zip) | Unzip to get the `.app` |
-| [Markdown studio.app](<release/mac-arm64/Markdown studio.app>) | Signed application bundle |
+| [Markdown-studio-2.0.1-arm64.dmg](https://github.com/yvnli/markdown-studio/releases/download/v2.0.1/Markdown-studio-2.0.1-arm64.dmg) | Recommended; drag it into Applications |
+| [Markdown-studio-2.0.1-arm64.zip](https://github.com/yvnli/markdown-studio/releases/download/v2.0.1/Markdown-studio-2.0.1-arm64.zip) | Unzip to get the `.app` |
+| [Markdown studio.app](<release/mac-arm64/Markdown studio.app>) | Signed application bundle (local build output) |
 | [SHA256SUMS.txt](docs/release/SHA256SUMS.txt) | Verify package integrity (run `shasum -a 256 -c SHA256SUMS.txt` next to the downloads) |
 | [macOS installation guide](docs/release/Installation-Guide-macOS.txt) | Gatekeeper, installation steps, and checksum notes |
 
