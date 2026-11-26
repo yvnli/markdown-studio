@@ -14,8 +14,8 @@
 
 | 安装包 | 说明 |
 | --- | --- |
-| [Markdown-studio-2.0.0-arm64.dmg](release/Markdown-studio-2.0.0-arm64.dmg) | 推荐，拖入「应用程序」即可 |
-| [Markdown-studio-2.0.0-arm64.zip](release/Markdown-studio-2.0.0-arm64.zip) | 解压后得到 `.app` |
+| [Markdown-studio-2.0.1-arm64.dmg](release/Markdown-studio-2.0.1-arm64.dmg) | 推荐，拖入「应用程序」即可 |
+| [Markdown-studio-2.0.1-arm64.zip](release/Markdown-studio-2.0.1-arm64.zip) | 解压后得到 `.app` |
 | [Markdown studio.app](<release/mac-arm64/Markdown studio.app>) | 已签名的应用包 |
 | [SHA256SUMS.txt](docs/release/SHA256SUMS.txt) | 校验安装包完整性（在下载目录执行 `shasum -a 256 -c SHA256SUMS.txt`） |
 | [English](docs/release/Installation-Guide-macOS.txt) · [安装说明](docs/release/安装说明.txt) | Gatekeeper、安装步骤与校验说明 |

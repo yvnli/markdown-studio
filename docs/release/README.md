@@ -1,4 +1,4 @@
-# Release documentation — Markdown studio 2.0.0
+# Release documentation — Markdown studio 2.0.1
 
 **English** · [中文](./README.zh-CN.md)
 
@@ -10,20 +10,27 @@ The installer files themselves are **not committed to Git** (each is 107–128 M
 history would be permanent). Build them locally with `npm run desktop:package` /
 `npm run dist:win`, or attach them to a GitHub Release using the checksums below.
 
+## What's new in 2.0.1
+
+- Text selected inside a code block is now clearly highlighted in both the editor and the preview,
+  using a VS Code-style blue selection color instead of the near-invisible default tint.
+
 ## Packages
 
 | File | Platform | Size |
 | --- | --- | --- |
-| `Markdown-studio-2.0.0-arm64.dmg` | macOS 11+, Apple Silicon (arm64) | 134,197,506 B (128 MiB) |
-| `Markdown-studio-2.0.0-arm64.zip` | macOS 11+, Apple Silicon (arm64) | 122,579,281 B (117 MiB) |
+| `Markdown-studio-2.0.1-arm64.dmg` | macOS 11+, Apple Silicon (arm64) | 134,195,942 B (128 MiB) |
+| `Markdown-studio-2.0.1-arm64.zip` | macOS 11+, Apple Silicon (arm64) | 122,579,498 B (117 MiB) |
 | `Markdown-studio-2.0.0-x64-setup.exe` | Windows 10 / 11 x64 (NSIS installer) | 123,826,544 B (118 MiB) |
 | `Markdown-studio-2.0.0-x64-portable.exe` | Windows 10 / 11 x64 (portable) | 112,592,839 B (107 MiB) |
+
+The Windows installers are still the 2.0.0 build; only the macOS packages were rebuilt for 2.0.1.
 
 SHA256 checksums, as stored in [SHA256SUMS.txt](./SHA256SUMS.txt):
 
 ```text
-270333a02889b416221b4f70b93f1e09d18b5bacf7df2e72798a5a9b8bf24073  Markdown-studio-2.0.0-arm64.dmg
-574d888c89bf2a831c835b6133d5415cf3ba906e16426247415ffd6714846940  Markdown-studio-2.0.0-arm64.zip
+fd71cf5f38297a81d16d5b0816669d2fc81d718879a86ec5a0f30fc00f6a5b77  Markdown-studio-2.0.1-arm64.dmg
+33f6f2552e03a7658b0fe64405d6061cbad98ebcb7aca9fd069c2afcc531f501  Markdown-studio-2.0.1-arm64.zip
 fef194d4a23968d66f87b1ae7405f09efe7a7f5247a179598946c9f5fb1de7ba  Markdown-studio-2.0.0-x64-setup.exe
 ad236adf8736498a3131dea85f05dc724d9038cb7e392d446d57c4ce1ce33fc9  Markdown-studio-2.0.0-x64-portable.exe
 ```
@@ -61,8 +68,9 @@ certutil -hashfile Markdown-studio-2.0.0-x64-portable.exe SHA256
   embedded `app.asar`, and the installer integrity were verified, but the app has not been launched
   on a real Windows machine. Run an install-and-launch regression on Windows 11 before a public
   release.
-- **macOS validation**: the DMG was mounted and the app launched to verify workspace read/write,
-  image paste, search, and last-workspace restore.
+- **macOS validation**: the 2.0.0 DMG was mounted and the app launched to verify workspace read/write,
+  image paste, search, and last-workspace restore. 2.0.1 only changes selection colors and was rebuilt
+  with the same pipeline.
 
 ## Reproducing the build
 

@@ -1,4 +1,4 @@
-# 发布文档 — Markdown studio 2.0.0
+# 发布文档 — Markdown studio 2.0.1
 
 [English](./README.md) · **中文**
 
@@ -8,20 +8,27 @@
 安装包本身**不入库**（单个 107–128 MiB，一旦进入历史就永久存在）。可在本地用
 `npm run desktop:package` / `npm run dist:win` 重新构建，或按下方校验值把安装包挂到 GitHub Release。
 
+## 2.0.1 更新内容
+
+- 选中代码块中的文字时，编辑区与预览区都会显示明显的 VS Code 风格蓝色选区，不再使用几乎
+  看不见的默认淡色。
+
 ## 安装包
 
 | 文件 | 平台 | 大小 |
 | --- | --- | --- |
-| `Markdown-studio-2.0.0-arm64.dmg` | macOS 11+，Apple Silicon（arm64） | 134,197,506 B（128 MiB） |
-| `Markdown-studio-2.0.0-arm64.zip` | macOS 11+，Apple Silicon（arm64） | 122,579,281 B（117 MiB） |
+| `Markdown-studio-2.0.1-arm64.dmg` | macOS 11+，Apple Silicon（arm64） | 134,195,942 B（128 MiB） |
+| `Markdown-studio-2.0.1-arm64.zip` | macOS 11+，Apple Silicon（arm64） | 122,579,498 B（117 MiB） |
 | `Markdown-studio-2.0.0-x64-setup.exe` | Windows 10 / 11 x64（NSIS 安装版） | 123,826,544 B（118 MiB） |
 | `Markdown-studio-2.0.0-x64-portable.exe` | Windows 10 / 11 x64（便携版） | 112,592,839 B（107 MiB） |
+
+Windows 安装包仍是 2.0.0 构建，本次只重新打包了 macOS 版本。
 
 SHA256 校验值（与 [SHA256SUMS.txt](./SHA256SUMS.txt) 一致）：
 
 ```text
-270333a02889b416221b4f70b93f1e09d18b5bacf7df2e72798a5a9b8bf24073  Markdown-studio-2.0.0-arm64.dmg
-574d888c89bf2a831c835b6133d5415cf3ba906e16426247415ffd6714846940  Markdown-studio-2.0.0-arm64.zip
+fd71cf5f38297a81d16d5b0816669d2fc81d718879a86ec5a0f30fc00f6a5b77  Markdown-studio-2.0.1-arm64.dmg
+33f6f2552e03a7658b0fe64405d6061cbad98ebcb7aca9fd069c2afcc531f501  Markdown-studio-2.0.1-arm64.zip
 fef194d4a23968d66f87b1ae7405f09efe7a7f5247a179598946c9f5fb1de7ba  Markdown-studio-2.0.0-x64-setup.exe
 ad236adf8736498a3131dea85f05dc724d9038cb7e392d446d57c4ce1ce33fc9  Markdown-studio-2.0.0-x64-portable.exe
 ```
@@ -55,7 +62,8 @@ certutil -hashfile Markdown-studio-2.0.0-x64-portable.exe SHA256
 - **Windows**：未使用代码签名证书。SmartScreen 可能提示未知发布者，点击「更多信息」→「仍要运行」。
 - **Windows 验证情况**：安装包在 macOS 上交叉构建，已验证 PE/NSIS 结构、内嵌 `app.asar` 与安装器
   完整性，但尚未在 Windows 实机启动。对外发布前建议在 Windows 11 上完成一次安装与启动回归。
-- **macOS 验证情况**：已挂载 DMG 并实际启动，验证了工作区读写、图片粘贴、搜索与上次工作区恢复。
+- **macOS 验证情况**：2.0.0 已挂载 DMG 并实际启动，验证了工作区读写、图片粘贴、搜索与上次工作区恢复；
+  2.0.1 只调整选区颜色，并用同一套流程重新打包。
 
 ## 重新构建
 

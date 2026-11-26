@@ -1,17 +1,17 @@
-Markdown studio 2.0.0 · macOS Apple Silicon (arm64)
+Markdown studio 2.0.1 · macOS Apple Silicon (arm64)
 ====================================================
 
 Chinese version: 安装说明.txt
 
 Installation (DMG)
 ------------------
-1. Double-click Markdown-studio-2.0.0-arm64.dmg.
+1. Double-click Markdown-studio-2.0.1-arm64.dmg.
 2. Drag "Markdown studio.app" into the Applications folder.
 3. If Gatekeeper blocks the first launch, right-click the app in Finder and choose "Open".
 
 Installation (ZIP)
 ------------------
-1. Unzip Markdown-studio-2.0.0-arm64.zip.
+1. Unzip Markdown-studio-2.0.1-arm64.zip.
 2. Drag "Markdown studio.app" into the Applications folder.
 
 Notes
