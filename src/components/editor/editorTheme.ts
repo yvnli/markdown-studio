@@ -132,6 +132,11 @@ export const markdownEditorTheme = EditorView.theme({
     color: 'var(--code-ink)',
     fontFamily: 'var(--font-mono)',
   },
+  // CodeMirror paints its selection layer below the content, so the opaque fenced-code
+  // background hides it; selections inside code blocks are drawn as mark decorations.
+  '.cm-md-code-selection': {
+    backgroundColor: 'var(--code-selection)',
+  },
   '.cm-md-table-source': {
     color: 'var(--ink-soft)',
   },

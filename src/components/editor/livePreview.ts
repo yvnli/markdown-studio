@@ -136,6 +136,13 @@ function buildDecorations(view: EditorView): DecorationSet {
 
       if (name === 'FencedCode') {
         addLineClassRange(node.from, node.to, 'cm-md-fenced-code');
+        // The native selection layer sits behind the opaque code background, so mark the
+        // selected code directly to keep the highlight visible.
+        for (const range of state.selection.ranges) {
+          const from = Math.max(node.from, range.from);
+          const to = Math.min(node.to, range.to);
+          if (to > from) pushMark(from, to, 'cm-md-code-selection');
+        }
       }
 
       if (name === 'Table') {

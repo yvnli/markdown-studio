@@ -296,6 +296,15 @@
   white-space: pre;
 }
 
+/* The global selection tint is invisible on the dark code surface, so code
+ * blocks get their own higher-contrast selection color (like VS Code). */
+.markdown-body pre::selection,
+.markdown-body pre ::selection,
+.code-block pre::selection,
+.code-block pre ::selection {
+  background: var(--code-selection);
+}
+
 .code-block {
   position: relative;
   margin: 1.8em 0;
