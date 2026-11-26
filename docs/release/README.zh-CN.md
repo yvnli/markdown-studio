@@ -17,7 +17,7 @@
 
 | 文件 | 平台 | 大小 |
 | --- | --- | --- |
-| `Markdown-studio-2.0.1-arm64.dmg` | macOS 11+，Apple Silicon（arm64） | 134,195,942 B（128 MiB） |
+| `Markdown-studio-2.0.1-arm64.dmg` | macOS 11+，Apple Silicon（arm64） | 134,197,822 B（128 MiB） |
 | `Markdown-studio-2.0.1-arm64.zip` | macOS 11+，Apple Silicon（arm64） | 122,579,498 B（117 MiB） |
 | `Markdown-studio-2.0.0-x64-setup.exe` | Windows 10 / 11 x64（NSIS 安装版） | 123,826,544 B（118 MiB） |
 | `Markdown-studio-2.0.0-x64-portable.exe` | Windows 10 / 11 x64（便携版） | 112,592,839 B（107 MiB） |
@@ -27,8 +27,8 @@ Windows 安装包仍是 2.0.0 构建，本次只重新打包了 macOS 版本。
 SHA256 校验值（与 [SHA256SUMS.txt](./SHA256SUMS.txt) 一致）：
 
 ```text
-fd71cf5f38297a81d16d5b0816669d2fc81d718879a86ec5a0f30fc00f6a5b77  Markdown-studio-2.0.1-arm64.dmg
-33f6f2552e03a7658b0fe64405d6061cbad98ebcb7aca9fd069c2afcc531f501  Markdown-studio-2.0.1-arm64.zip
+098e24a9721f27f210bd3a1f71d88c19161fbb8f39db8216713952dec8fa92b6  Markdown-studio-2.0.1-arm64.dmg
+d0d8ed98ba064f02ff18aba75e29e26249769137dcf0ce22c33c0988eeb2a716  Markdown-studio-2.0.1-arm64.zip
 fef194d4a23968d66f87b1ae7405f09efe7a7f5247a179598946c9f5fb1de7ba  Markdown-studio-2.0.0-x64-setup.exe
 ad236adf8736498a3131dea85f05dc724d9038cb7e392d446d57c4ce1ce33fc9  Markdown-studio-2.0.0-x64-portable.exe
 ```
